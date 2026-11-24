@@ -7,6 +7,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+    }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: #ffffff;
@@ -19,11 +22,56 @@
     .instamart-blue-text { color: #0258e8; }
     .instamart-blue-border { border-color: #0258e8; }
     .instamart-lime { background-color: #71c61e; }
-    @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
+
+    @keyframes smoothSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
-    .animate-slide-up { animation: slideUp 0.22s ease-out; }
+    @keyframes smoothFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes backdropFade {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .animate-slide-up {
+      animation: smoothSlideUp 0.28s var(--ease-smooth) forwards;
+    }
+    .animate-fade-in {
+      animation: smoothFadeIn 0.24s var(--ease-smooth) forwards;
+    }
+    .animate-backdrop {
+      animation: backdropFade 0.2s ease-out forwards;
+    }
+
+    .smooth-card {
+      transition: transform 0.22s var(--ease-smooth), box-shadow 0.22s var(--ease-smooth), border-color 0.22s var(--ease-smooth), opacity 0.22s var(--ease-smooth);
+    }
+    .smooth-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -12px rgba(2, 88, 232, 0.22);
+    }
+    .smooth-btn {
+      transition: transform 0.16s var(--ease-smooth), background-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+    }
+    .smooth-btn:active {
+      transform: scale(0.95);
+    }
+
     details > summary { list-style: none; }
     details > summary::-webkit-details-marker { display: none; }
   </style>
@@ -31,12 +79,12 @@
 <body class="pb-24">
 
   <!-- ==================== TOP INSTAMART-STYLE SEARCH & CATEGORY HEADER ==================== -->
-  <header class="sticky top-0 z-30 bg-white border-b border-slate-100">
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100">
     <div class="max-w-5xl mx-auto px-3 pt-2.5 pb-2">
 
       <!-- Search Pill Bar + Clean Brand Logo (5-Tap Secret Admin Trigger) -->
       <div class="flex items-center gap-2.5">
-        <div onclick="handleSecretLogoTap()" class="flex items-center gap-1.5 shrink-0 cursor-pointer select-none pr-1">
+        <div onclick="handleSecretLogoTap()" class="flex items-center gap-1.5 shrink-0 cursor-pointer select-none pr-1 smooth-btn">
           <div class="w-8 h-8 rounded-xl instamart-blue text-white flex items-center justify-center font-extrabold text-sm shadow-2xs">
             V
           </div>
@@ -49,7 +97,7 @@
         <!-- Search Input Pill -->
         <div class="relative flex-1">
           <input id="searchInput" type="text" oninput="renderProducts()" placeholder="Search vegetables, fruit, milk, eggs..."
-            class="w-full pl-3.5 pr-8 py-2 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition" />
+            class="w-full pl-3.5 pr-8 py-2 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition-all duration-200" />
           <svg class="w-4 h-4 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
           </svg>
@@ -58,7 +106,7 @@
         <!-- Shown ONLY when Admin is unlocked -->
         <div id="adminExitBar" class="hidden flex items-center gap-1.5 shrink-0">
           <span id="syncIndicator" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">Local Admin</span>
-          <button onclick="exitAdminMode()" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-900 text-white">
+          <button onclick="exitAdminMode()" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-900 text-white smooth-btn">
             Exit
           </button>
         </div>
@@ -79,7 +127,7 @@
   </main>
 
   <!-- ==================== 2. HIDDEN ADMIN PANEL VIEW ==================== -->
-  <section id="adminView" class="hidden max-w-5xl mx-auto px-4 pt-4">
+  <section id="adminView" class="hidden max-w-5xl mx-auto px-4 pt-4 animate-fade-in">
 
     <!-- Admin Control Banner -->
     <div class="bg-slate-900 text-white rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
@@ -94,13 +142,12 @@
       </div>
     </div>
 
-    <!-- Main Categories Manager (Add / Remove from All Items, Veggies, Fruit, etc. + Photo Upload) -->
+    <!-- Main Categories Manager -->
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
       <h2 class="font-extrabold text-base text-slate-900 mb-1">Main Categories (All Items, Veggies, Fruit & More)</h2>
       <p class="text-xs text-slate-500 mb-3">Add new top categories, remove unwanted ones, or update their circular icons.</p>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <!-- Add / Remove Categories -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
           <label class="block text-xs font-bold text-slate-700">Add or Remove Category Tab</label>
           <div class="flex gap-2">
@@ -108,39 +155,34 @@
               onkeydown="if(event.key==='Enter') addMainCategory()"
               class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
             <button type="button" onclick="addMainCategory()"
-              class="px-3.5 py-2 rounded-xl instamart-blue text-white text-xs font-bold shrink-0">
+              class="px-3.5 py-2 rounded-xl instamart-blue text-white text-xs font-bold shrink-0 smooth-btn">
               + Add
             </button>
           </div>
-          <div id="mainCategoryChipsList" class="flex flex-wrap gap-1.5">
-            <!-- Populated by JS -->
-          </div>
+          <div id="mainCategoryChipsList" class="flex flex-wrap gap-1.5"></div>
         </div>
 
-        <!-- Upload Photo for Any Main Category -->
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
           <label class="block text-xs font-bold text-slate-700">Upload Circular Icon for Category</label>
           <select id="catPhotoTargetSelect" onchange="onCategoryPhotoSelectChange()"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold">
-            <!-- Populated by JS -->
-          </select>
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold"></select>
           <input id="catPhotoFileInput" type="file" accept="image/*" onchange="handleCategoryPhotoUpload(event)"
             class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700" />
           <input id="catPhotoUrlInput" type="url" placeholder="Image URL or upload above"
             class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
           <p id="catPhotoUploadStatus" class="text-[11px] font-semibold text-emerald-700"></p>
           <button type="button" onclick="saveCategoryPhoto()"
-            class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+            class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold smooth-btn">
             Save Category Photo
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Add New Product + Delivery Slots ON/OFF -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+    <!-- Add New Product + Delivery Slots ON/OFF (Same-Line Layout) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5">
       <!-- Add New Product -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <h2 class="font-extrabold text-base text-slate-900 mb-3">Add New Product</h2>
         <div class="space-y-3 text-sm">
           <div class="grid grid-cols-2 gap-2">
@@ -156,16 +198,13 @@
 
           <div>
             <label class="block text-xs font-bold text-slate-600 mb-1">Select Category *</label>
-            <select id="newVegCatSelect" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold">
-              <!-- Populated from Main Categories -->
-            </select>
+            <select id="newVegCatSelect" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold"></select>
           </div>
 
-          <!-- Dynamic Variant Builder -->
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
             <div class="flex items-center justify-between mb-2">
               <label class="text-xs font-bold text-slate-700">Pack Sizes & Prices *</label>
-              <button type="button" onclick="addVariantRow()" class="text-[11px] font-bold instamart-blue-text bg-blue-100 px-2 py-0.5 rounded-lg">
+              <button type="button" onclick="addVariantRow()" class="text-[11px] font-bold instamart-blue-text bg-blue-100 px-2 py-0.5 rounded-lg smooth-btn">
                 + Add Size
               </button>
             </div>
@@ -188,28 +227,28 @@
             <p id="uploadStatus" class="text-[11px] text-emerald-700 mt-1"></p>
           </div>
 
-          <button onclick="addNewVegetable()" class="w-full py-2.5 instamart-blue hover:opacity-95 text-white font-bold rounded-xl transition">
+          <button onclick="addNewVegetable()" class="w-full py-2.5 instamart-blue hover:opacity-95 text-white font-bold rounded-xl smooth-btn">
             + Add Product
           </button>
         </div>
       </div>
 
-      <!-- Delivery Slots ON/OFF Control -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <!-- Delivery Slots ON/OFF Control (All on Same Line) -->
+      <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <h2 class="font-extrabold text-base text-slate-900 mb-1">Delivery Slots (ON / OFF)</h2>
-        <p class="text-xs text-slate-500 mb-3">Turn OFF any slot to hide it from the checkout page.</p>
-        <div id="adminSlotToggles" class="space-y-2.5">
+        <p class="text-xs text-slate-500 mb-3">Tap any slot pill to toggle ON or OFF. Turn OFF hides it from checkout.</p>
+        <div id="adminSlotToggles" class="space-y-2.5 overflow-x-auto no-scrollbar">
           <!-- Populated by JS -->
         </div>
       </div>
     </div>
 
-    <!-- Manage Existing Catalog -->
+    <!-- Manage Existing Catalog (In Stock / Out of Stock Toggle) -->
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div>
           <h2 class="font-extrabold text-base text-slate-900">Product List</h2>
-          <p class="text-[11px] text-slate-500">Use <strong>Out of Stock</strong> to show "OUT OF STOCK" on the store without ordering, or <strong>ON / OFF</strong> to show/hide the item.</p>
+          <p class="text-[11px] text-slate-500">Click <strong>In Stock / Out of Stock</strong> to switch availability on the store, or <strong>ON / OFF</strong> to show/hide the item.</p>
         </div>
         <span class="text-xs text-slate-500" id="catalogCountLabel">0 items</span>
       </div>
@@ -224,9 +263,9 @@
           <span class="font-extrabold text-xs sm:text-sm text-slate-800">Store & Security Settings</span>
           <span class="text-[11px] text-slate-400 font-medium">(PIN, UPI, WhatsApp, Script URL)</span>
         </div>
-        <span class="text-xs font-bold text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+        <span class="text-xs font-bold text-slate-500 group-open:rotate-180 transition-transform duration-200">▼</span>
       </summary>
-      <div class="px-5 pb-5 pt-2 border-t border-slate-100 space-y-3 text-xs">
+      <div class="px-5 pb-5 pt-2 border-t border-slate-100 space-y-3 text-xs animate-fade-in">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           <div>
             <label class="block font-bold text-slate-600 mb-1">Store Name</label>
@@ -256,7 +295,7 @@
           </div>
         </div>
         <div class="flex justify-end">
-          <button onclick="saveAdminSettings()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition">
+          <button onclick="saveAdminSettings()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl smooth-btn">
             Save Settings
           </button>
         </div>
@@ -266,32 +305,28 @@
 
   <!-- ==================== INSTAMART FULL-PHOTO DETAIL POPUP MODAL ==================== -->
   <div id="variantPopupModal" onclick="if(event.target===this) closeVariantPopup()"
-    class="hidden fixed inset-0 z-50 bg-slate-900/65 backdrop-blur-[1px] flex flex-col justify-end sm:items-center sm:justify-center p-0 sm:p-4">
+    class="hidden fixed inset-0 z-50 bg-slate-900/65 backdrop-blur-[1px] flex flex-col justify-end sm:items-center sm:justify-center p-0 sm:p-4 animate-backdrop">
 
     <div class="bg-white w-full max-w-md mx-auto rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto shadow-2xl animate-slide-up">
 
-      <!-- Large Full-Width Product Photo Header (Instamart Style) -->
+      <!-- Large Full-Width Product Photo Header -->
       <div class="relative w-full h-64 sm:h-72 bg-slate-100 overflow-hidden">
-        <img id="vpImg" src="" alt="" class="w-full h-full object-cover" />
+        <img id="vpImg" src="" alt="" class="w-full h-full object-cover transition-transform duration-300" />
 
-        <!-- Top-Left Close Arrow / Button -->
         <button type="button" onclick="closeVariantPopup()" aria-label="Close popup"
-          class="absolute top-3.5 left-3.5 w-9 h-9 rounded-full bg-white/95 hover:bg-white text-slate-800 shadow-md flex items-center justify-center font-bold text-base active:scale-95 transition">
+          class="absolute top-3.5 left-3.5 w-9 h-9 rounded-full bg-white/95 hover:bg-white text-slate-800 shadow-md flex items-center justify-center font-bold text-base smooth-btn">
           ⌄
         </button>
 
-        <!-- Top-Right Category Badge -->
         <span id="vpCategoryBadge"
           class="absolute top-3.5 right-3.5 text-[11px] font-bold instamart-blue-text bg-white/95 px-2.5 py-1 rounded-lg shadow-xs">
           Veggies
         </span>
 
-        <!-- Bottom-Left Veg Indicator -->
         <span class="absolute bottom-3 left-3.5 w-4 h-4 bg-white rounded-xs border border-emerald-600 flex items-center justify-center shadow-2xs">
           <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
         </span>
 
-        <!-- Bottom-Right Fresh Tag -->
         <span class="absolute bottom-3 right-3.5 instamart-lime text-slate-950 font-extrabold text-[10px] px-2 py-0.5 rounded shadow-2xs">
           FRESH DAILY
         </span>
@@ -309,12 +344,10 @@
           <span class="text-[11px] font-semibold text-slate-400">Tap + to add pack</span>
         </div>
 
-        <div id="vpVariantCards" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pb-3">
-          <!-- Variant cards populated by JS -->
-        </div>
+        <div id="vpVariantCards" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pb-3"></div>
 
         <button type="button" onclick="closeVariantPopup()"
-          class="mt-2 w-full instamart-blue hover:opacity-95 text-white px-4 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-extrabold text-sm transition">
+          class="mt-2 w-full instamart-blue hover:opacity-95 text-white px-4 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-extrabold text-sm smooth-btn">
           <span id="vpItemTotal">Item Total: ₹0</span>
           <span class="flex items-center gap-1">Confirm <span class="text-base leading-none">›</span></span>
         </button>
@@ -322,9 +355,9 @@
     </div>
   </div>
 
-  <!-- ==================== ADMIN PIN MODAL (CLEAN BLANK INPUT) ==================== -->
-  <div id="pinModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
+  <!-- ==================== ADMIN PIN MODAL ==================== -->
+  <div id="pinModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-backdrop">
+    <div class="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center animate-slide-up">
       <div class="w-12 h-12 rounded-2xl instamart-blue text-white flex items-center justify-center mx-auto text-xl mb-3">🔒</div>
       <h3 class="font-extrabold text-lg text-slate-900">Vegman Admin Login</h3>
       <p class="text-xs text-slate-500 mt-1 mb-4">Enter your secret owner PIN.</p>
@@ -332,15 +365,15 @@
         onkeydown="if(event.key==='Enter') verifyAdminPin()"
         class="w-full text-center tracking-widest font-extrabold text-lg px-4 py-2.5 rounded-xl border border-slate-300 mb-3" />
       <div class="flex gap-2">
-        <button onclick="closePinModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">Cancel</button>
-        <button onclick="verifyAdminPin()" class="w-1/2 py-2.5 rounded-xl instamart-blue text-white font-bold text-xs">Unlock</button>
+        <button onclick="closePinModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs smooth-btn">Cancel</button>
+        <button onclick="verifyAdminPin()" class="w-1/2 py-2.5 rounded-xl instamart-blue text-white font-bold text-xs smooth-btn">Unlock</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== FLOATING CART PILL (NO DELIVERY FEE SHOWN HERE) ==================== -->
+  <!-- ==================== FLOATING CART PILL ==================== -->
   <div id="floatingCartBar" class="hidden fixed bottom-4 inset-x-0 z-30 flex justify-center px-4 pointer-events-none">
-    <button onclick="openCheckoutModal()" class="pointer-events-auto instamart-blue hover:opacity-95 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 transition">
+    <button onclick="openCheckoutModal()" class="pointer-events-auto instamart-blue hover:opacity-95 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 smooth-btn animate-slide-up">
       <div class="text-left leading-tight">
         <div class="font-extrabold text-xs tracking-wide uppercase">CART</div>
         <div id="cartBadgeCount" class="text-[10px] font-semibold text-blue-100">0 ITEMS</div>
@@ -354,17 +387,17 @@
   </div>
 
   <!-- ==================== CHECKOUT MODAL ==================== -->
-  <div id="checkoutModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto p-5 shadow-2xl">
+  <div id="checkoutModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-backdrop">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto p-5 shadow-2xl animate-slide-up">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
         <h3 class="font-extrabold text-lg text-slate-900">Checkout</h3>
-        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200">✕</button>
+        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 smooth-btn">✕</button>
       </div>
 
       <!-- Cart Items -->
       <div id="checkoutItemsList" class="divide-y divide-slate-100 my-2.5 max-h-40 overflow-y-auto"></div>
 
-      <!-- Customer Details: 10-Digit Mobile Lookup + Optional GPS Button -->
+      <!-- Customer Details -->
       <div class="space-y-2.5 text-sm mb-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
@@ -384,7 +417,7 @@
           <div class="flex items-center justify-between mb-1">
             <label class="text-xs font-bold text-slate-700">Delivery Address *</label>
             <button type="button" onclick="captureOptionalGps()"
-              class="text-[11px] font-bold instamart-blue-text bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg">
+              class="text-[11px] font-bold instamart-blue-text bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg smooth-btn">
               📍 Use GPS (Optional)
             </button>
           </div>
@@ -392,16 +425,14 @@
             class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
         </div>
 
-        <!-- Categorized Delivery Slot Selector -->
+        <!-- Same-Line Delivery Slot Selector -->
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3">
           <label class="block text-xs font-extrabold text-slate-800 mb-2">Select Delivery Slot</label>
-          <div id="checkoutSlotContainer" class="space-y-2.5">
-            <!-- Populated by JS -->
-          </div>
+          <div id="checkoutSlotContainer" class="space-y-2 overflow-x-auto no-scrollbar"></div>
         </div>
       </div>
 
-      <!-- Bill Details (Delivery Fee ₹9 below ₹99 / FREE at ₹99+ Shown Here at Checkout) -->
+      <!-- Bill Details -->
       <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 mb-4 text-xs space-y-2">
         <div class="flex items-center justify-between text-slate-700 font-semibold">
           <span>Item Total</span>
@@ -421,11 +452,11 @@
       <div class="mb-4">
         <label class="block text-xs font-bold text-slate-700 mb-2">Select Payment Method</label>
         <div class="grid grid-cols-2 gap-2.5">
-          <button type="button" id="payModeUpiBtn" onclick="setPaymentMode('UPI')" class="p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left transition">
+          <button type="button" id="payModeUpiBtn" onclick="setPaymentMode('UPI')" class="p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left smooth-btn">
             <div class="font-extrabold text-xs instamart-blue-text">UPI QR Pay</div>
             <div class="text-[11px] text-slate-600">GPay / PhonePe / Paytm</div>
           </button>
-          <button type="button" id="payModeCodBtn" onclick="setPaymentMode('COD')" class="p-3 rounded-xl border border-slate-200 bg-white text-left transition">
+          <button type="button" id="payModeCodBtn" onclick="setPaymentMode('COD')" class="p-3 rounded-xl border border-slate-200 bg-white text-left smooth-btn">
             <div class="font-extrabold text-xs text-slate-800">Cash on Delivery</div>
             <div class="text-[11px] text-slate-500">Pay at doorstep</div>
           </button>
@@ -439,14 +470,14 @@
         <img id="upiQrImage" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-xl bg-white p-2 border border-blue-200 shadow-xs" />
         <div class="mt-2.5 flex items-center justify-center gap-2">
           <span id="displayUpiId" class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-slate-800">shaikjahangir149-3@oksbi</span>
-          <button type="button" onclick="copyUpiId()" class="text-xs font-bold instamart-blue-text bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg">Copy ID</button>
+          <button type="button" onclick="copyUpiId()" class="text-xs font-bold instamart-blue-text bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg smooth-btn">Copy ID</button>
         </div>
         <p class="text-[11px] text-slate-600 mt-2">
           After completing your UPI payment, tap below to send your order on WhatsApp.
         </p>
       </div>
 
-      <button id="placeOrderBtn" onclick="submitOrder()" class="w-full py-3.5 instamart-blue hover:opacity-95 text-white font-extrabold rounded-2xl shadow-lg text-sm transition">
+      <button id="placeOrderBtn" onclick="submitOrder()" class="w-full py-3.5 instamart-blue hover:opacity-95 text-white font-extrabold rounded-2xl shadow-lg text-sm smooth-btn">
         Place Order & Send on WhatsApp →
       </button>
     </div>
@@ -623,7 +654,7 @@
       }
     }
 
-    // ==================== INITIALIZATION (NO CATALOG AUTO-PULL) ====================
+    // ==================== INITIALIZATION ====================
     function init() {
       selectedDeliverySlot = getFirstEnabledSlot();
       applySettingsToUI();
@@ -775,13 +806,13 @@
 
         return `
           <button onclick="selectCategory('${catKey.replace(/'/g, "\\'")}')"
-            class="flex flex-col items-center w-16 sm:w-20 shrink-0 group focus:outline-none">
-            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-100/90 p-1 flex items-center justify-center overflow-hidden border-2 transition ${
-              isActive ? "instamart-blue-border bg-blue-50/40 shadow-xs" : "border-transparent group-hover:bg-slate-200/70"
+            class="flex flex-col items-center w-16 sm:w-20 shrink-0 group focus:outline-none smooth-btn">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-100/90 p-1 flex items-center justify-center overflow-hidden border-2 transition-all duration-200 ${
+              isActive ? "instamart-blue-border bg-blue-50/40 shadow-xs scale-105" : "border-transparent group-hover:bg-slate-200/70"
             }">
               <img src="${thumbUrl}" alt="${catKey}" class="w-full h-full object-cover rounded-full" />
             </div>
-            <span class="mt-1.5 text-[11px] leading-tight text-center line-clamp-2 transition ${
+            <span class="mt-1.5 text-[11px] leading-tight text-center line-clamp-2 transition-colors duration-200 ${
               isActive ? "font-extrabold instamart-blue-text" : "font-medium text-slate-600 group-hover:text-slate-900"
             }">
               ${catKey}
@@ -867,7 +898,7 @@
         productTotalInCart += qtyInCart * v.price;
 
         return `
-          <div class="rounded-2xl border ${qtyInCart > 0 ? 'instamart-blue-border bg-blue-50/30' : 'border-slate-200 bg-white'} p-3 flex flex-col justify-between shadow-2xs">
+          <div class="rounded-2xl border transition-all duration-200 ${qtyInCart > 0 ? 'instamart-blue-border bg-blue-50/30' : 'border-slate-200 bg-white'} p-3 flex flex-col justify-between shadow-2xs">
             <div class="flex items-start justify-between gap-1 mb-2">
               <div>
                 <div class="font-extrabold text-xs text-slate-900">${v.label}</div>
@@ -875,14 +906,14 @@
               </div>
               ${qtyInCart === 0 ? `
                 <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)"
-                  class="w-7 h-7 rounded-lg bg-white border border-slate-200 shadow-xs flex items-center justify-center instamart-blue-text font-extrabold text-lg leading-none active:scale-95 transition">
+                  class="w-7 h-7 rounded-lg bg-white border border-slate-200 shadow-xs flex items-center justify-center instamart-blue-text font-extrabold text-lg leading-none smooth-btn">
                   +
                 </button>
               ` : `
                 <div class="h-7 px-1 rounded-lg bg-white border instamart-blue-border shadow-xs flex items-center gap-1.5 instamart-blue-text font-extrabold text-xs">
-                  <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, -1)" class="px-1 text-sm">−</button>
+                  <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, -1)" class="px-1 text-sm smooth-btn">−</button>
                   <span>${qtyInCart}</span>
-                  <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)" class="px-1 text-sm">+</button>
+                  <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)" class="px-1 text-sm smooth-btn">+</button>
                 </div>
               `}
             </div>
@@ -914,7 +945,7 @@
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-2 md:col-span-4 text-center py-10 text-xs font-semibold text-slate-500">No items available right now.</div>`;
+        grid.innerHTML = `<div class="col-span-2 md:col-span-4 text-center py-10 text-xs font-semibold text-slate-500 animate-fade-in">No items available right now.</div>`;
         return;
       }
 
@@ -927,11 +958,11 @@
         const totalProdQty = isOos ? 0 : getTotalProductQtyInCart(p.id);
 
         return `
-        <div class="flex flex-col bg-white rounded-2xl border border-slate-100 p-2 shadow-2xs ${isOos ? 'opacity-75' : ''}">
+        <div class="flex flex-col bg-white rounded-2xl border border-slate-100 p-2 shadow-2xs smooth-card animate-fade-in ${isOos ? 'opacity-75' : ''}">
           <div onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
             class="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-200/70 overflow-hidden mb-2 ${!isOos ? 'cursor-pointer' : ''}">
             <img src="${p.image || 'https://via.placeholder.com/300x300?text=Vegman'}" alt="${p.name}"
-              class="w-full h-full object-cover ${isOos ? 'grayscale' : ''}" />
+              class="w-full h-full object-cover transition-transform duration-300 ${!isOos ? 'hover:scale-105' : 'grayscale'}" />
 
             ${isOos ? `
               <div class="absolute inset-0 bg-slate-900/35 flex items-center justify-center p-2">
@@ -946,15 +977,15 @@
 
               ${totalProdQty === 0 ? `
                 <button onclick="event.stopPropagation(); handleCardAction('${p.id}')"
-                  class="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-md flex items-center justify-center instamart-blue-text font-extrabold text-xl leading-none active:scale-95 transition">
+                  class="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-md flex items-center justify-center instamart-blue-text font-extrabold text-xl leading-none smooth-btn">
                   +
                 </button>
               ` : `
                 <div onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
-                  class="absolute bottom-1.5 right-1.5 h-8 px-1.5 rounded-xl bg-white border instamart-blue-border shadow-md flex items-center gap-2 instamart-blue-text font-extrabold text-xs cursor-pointer">
-                  <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', -1)`}" class="px-1 text-sm">−</button>
+                  class="absolute bottom-1.5 right-1.5 h-8 px-1.5 rounded-xl bg-white border instamart-blue-border shadow-md flex items-center gap-2 instamart-blue-text font-extrabold text-xs cursor-pointer animate-fade-in">
+                  <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', -1)`}" class="px-1 text-sm smooth-btn">−</button>
                   <span>${totalProdQty}</span>
-                  <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', 1)`}" class="px-1 text-sm">+</button>
+                  <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', 1)`}" class="px-1 text-sm smooth-btn">+</button>
                 </div>
               `}
             `}
@@ -963,7 +994,7 @@
           <div class="flex flex-wrap gap-1 mb-1">
             ${vars.map((v, idx) => `
               <button type="button" onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
-                class="px-2 py-0.5 rounded-md text-[10px] font-bold border transition ${
+                class="px-2 py-0.5 rounded-md text-[10px] font-bold border smooth-btn ${
                   idx === activeIdx
                     ? 'instamart-blue-border instamart-blue-text bg-blue-50/70'
                     : 'border-slate-200 text-slate-500 bg-white'
@@ -977,7 +1008,7 @@
             <span class="font-extrabold text-sm text-slate-900">₹${activeVar.price}</span>
             ${isOos
               ? `<span class="bg-rose-100 text-rose-700 font-extrabold text-[9px] px-1.5 py-0.5 rounded">OUT OF STOCK</span>`
-              : `<span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">FRESH</span>`
+              : `<span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">IN STOCK</span>`
             }
           </div>
 
@@ -1026,7 +1057,7 @@
       }
     }
 
-    // ==================== CHECKOUT, SLOTS & ₹99 FREE DELIVERY / ₹9 FEE ====================
+    // ==================== SAME-LINE CHECKOUT SLOTS & ₹99 FREE DELIVERY ====================
     function renderCheckoutSlots() {
       const container = document.getElementById("checkoutSlotContainer");
       const enabledSlotsList = [];
@@ -1039,7 +1070,7 @@
           const isSelected = selectedDeliverySlot === fullVal;
           return `
             <button type="button" onclick="selectDeliverySlot('${fullVal.replace(/'/g, "\\'")}')"
-              class="px-2 py-1.5 rounded-lg text-[10px] font-bold border text-center transition ${
+              class="px-2.5 py-1.5 rounded-lg text-[10px] font-bold border whitespace-nowrap shrink-0 smooth-btn ${
                 isSelected
                   ? "instamart-blue text-white border-transparent shadow-2xs"
                   : "bg-white text-slate-700 border-slate-200 hover:border-blue-300"
@@ -1052,9 +1083,9 @@
         if (!buttonsHtml) return "";
 
         return `
-          <div>
-            <div class="text-[11px] font-bold text-slate-600 mb-1">${grp.group}</div>
-            <div class="grid grid-cols-3 gap-1.5">
+          <div class="flex items-center gap-2 min-w-max">
+            <span class="text-[11px] font-extrabold text-slate-700 w-24 shrink-0">${grp.group} -</span>
+            <div class="flex items-center gap-1.5">
               ${buttonsHtml}
             </div>
           </div>
@@ -1125,9 +1156,9 @@
             <div class="text-slate-500">₹${item.unitPrice} each</div>
           </div>
           <div class="flex items-center gap-2">
-            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold">-</button>
+            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold smooth-btn">-</button>
             <span class="font-bold">${item.qty}</span>
-            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold">+</button>
+            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold smooth-btn">+</button>
           </div>
         </div>
       `).join("");
@@ -1147,11 +1178,11 @@
       const isUpi = mode === "UPI";
       document.getElementById("upiQrPanel").classList.toggle("hidden", !isUpi);
       document.getElementById("payModeUpiBtn").className = isUpi
-        ? "p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left transition"
-        : "p-3 rounded-xl border border-slate-200 bg-white text-left transition";
+        ? "p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left smooth-btn"
+        : "p-3 rounded-xl border border-slate-200 bg-white text-left smooth-btn";
       document.getElementById("payModeCodBtn").className = !isUpi
-        ? "p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left transition"
-        : "p-3 rounded-xl border border-slate-200 bg-white text-left transition";
+        ? "p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left smooth-btn"
+        : "p-3 rounded-xl border border-slate-200 bg-white text-left smooth-btn";
     }
 
     function copyUpiId() {
@@ -1251,7 +1282,7 @@
         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-300 text-xs font-bold text-slate-800">
           ${cat}
           ${mainCategories.length > 1 ? `
-            <button type="button" onclick="removeMainCategory(${idx})" title="Remove ${cat}" class="text-rose-600 font-extrabold hover:text-rose-800">✕</button>
+            <button type="button" onclick="removeMainCategory(${idx})" title="Remove ${cat}" class="text-rose-600 font-extrabold hover:text-rose-800 smooth-btn">✕</button>
           ` : ''}
         </span>
       `).join("");
@@ -1337,21 +1368,22 @@
       document.getElementById("catPhotoUploadStatus").textContent = `Saved icon for "${cat}" ✓`;
     }
 
+    // All slots for a group stay on a single line: "Morning - 6:30 – 7:30 AM [ON]  7:30 – 9:00 AM [ON]  9:00 – 10:00 AM [ON]"
     function renderAdminSlotToggles() {
       const box = document.getElementById("adminSlotToggles");
       box.innerHTML = slotGroups.map((grp, gIdx) => `
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-          <div class="text-[11px] font-extrabold text-slate-700 mb-1.5">${grp.group}</div>
-          <div class="grid grid-cols-3 gap-1.5">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center gap-2.5 min-w-max">
+          <span class="text-[11px] font-extrabold text-slate-800 w-24 shrink-0">${grp.group} -</span>
+          <div class="flex items-center gap-2">
             ${grp.slots.map((s, sIdx) => `
               <button type="button" onclick="toggleSlot(${gIdx}, ${sIdx})"
-                class="flex flex-col sm:flex-row items-center justify-between px-2 py-1.5 rounded-lg border text-[10px] font-bold transition ${
+                class="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold whitespace-nowrap shrink-0 smooth-btn ${
                   s.enabled
                     ? "bg-emerald-50 border-emerald-200 text-emerald-900"
                     : "bg-slate-100 border-slate-200 text-slate-400"
                 }">
-                <span class="truncate">${s.label}</span>
-                <span class="mt-0.5 sm:mt-0 px-1.5 py-0.5 rounded text-[9px] font-extrabold ${
+                <span>${s.label}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold transition-colors duration-200 ${
                   s.enabled ? "bg-emerald-600 text-white" : "bg-slate-400 text-white"
                 }">
                   ${s.enabled ? "ON" : "OFF"}
@@ -1373,7 +1405,7 @@
     function addVariantRow() {
       const container = document.getElementById("variantBuilderRows");
       const row = document.createElement("div");
-      row.className = "flex gap-2";
+      row.className = "flex gap-2 animate-fade-in";
       row.innerHTML = `
         <input type="text" placeholder="Size (e.g. 1kg)" class="var-label w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
         <input type="number" placeholder="Price ₹" class="var-price w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
@@ -1486,27 +1518,27 @@
             <input type="text" value="${p.variants}" onchange="updateAdminVariants(${idx}, this.value)"
               title="Format: Size:Price, Size:Price"
               class="w-36 sm:w-44 px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold" />
-            <button type="button" onclick="toggleOutOfStock(${idx})"
-              class="px-2.5 py-1.5 rounded-xl font-extrabold text-[11px] border transition ${
+            <button type="button" onclick="toggleStockStatus(${idx})"
+              class="px-3 py-1.5 rounded-xl font-extrabold text-[11px] border smooth-btn ${
                 isOos
                   ? "bg-rose-600 text-white border-rose-600"
-                  : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+                  : "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100"
               }">
-              ${isOos ? "Out of Stock ✓" : "Out of Stock"}
+              ${isOos ? "Out of Stock" : "In Stock"}
             </button>
             <button type="button" onclick="toggleProductOnOff(${idx})"
-              class="px-3 py-1.5 rounded-xl font-extrabold text-[11px] transition ${
+              class="px-3 py-1.5 rounded-xl font-extrabold text-[11px] smooth-btn ${
                 isOn ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
               }">
               ${isOn ? "ON" : "OFF"}
             </button>
-            <button type="button" onclick="deleteProduct(${idx})" class="text-rose-600 font-bold px-1.5 text-sm">✕</button>
+            <button type="button" onclick="deleteProduct(${idx})" class="text-rose-600 font-bold px-1.5 text-sm smooth-btn">✕</button>
           </div>
         </div>
       `}).join("");
     }
 
-    function toggleOutOfStock(idx) {
+    function toggleStockStatus(idx) {
       const nextOos = !Boolean(products[idx].outOfStock);
       products[idx].outOfStock = nextOos;
       if (nextOos) {
