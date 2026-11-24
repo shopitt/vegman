@@ -204,10 +204,13 @@
       </div>
     </div>
 
-    <!-- Manage Existing Catalog (Right-Side Corner ON/OFF Toggle) -->
+    <!-- Manage Existing Catalog -->
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-extrabold text-base text-slate-900">Product List (Right-Corner ON/OFF Hides From Store)</h2>
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div>
+          <h2 class="font-extrabold text-base text-slate-900">Product List</h2>
+          <p class="text-[11px] text-slate-500">Use <strong>Out of Stock</strong> to show "OUT OF STOCK" on the store without ordering, or <strong>ON / OFF</strong> to show/hide the item.</p>
+        </div>
         <span class="text-xs text-slate-500" id="catalogCountLabel">0 items</span>
       </div>
       <div id="adminCatalogList" class="divide-y divide-slate-100"></div>
@@ -261,44 +264,61 @@
     </details>
   </section>
 
-  <!-- ==================== INSTAMART QUANTITY SELECTION BOTTOM SHEET MODAL ==================== -->
+  <!-- ==================== INSTAMART FULL-PHOTO DETAIL POPUP MODAL ==================== -->
   <div id="variantPopupModal" onclick="if(event.target===this) closeVariantPopup()"
-    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-[1px] flex flex-col justify-end sm:items-center sm:justify-center">
+    class="hidden fixed inset-0 z-50 bg-slate-900/65 backdrop-blur-[1px] flex flex-col justify-end sm:items-center sm:justify-center p-0 sm:p-4">
 
-    <div class="w-full max-w-md mx-auto flex justify-center mb-3">
-      <button onclick="closeVariantPopup()"
-        class="w-10 h-10 rounded-full bg-slate-900/90 text-white flex items-center justify-center font-bold text-base shadow-lg active:scale-95 transition">
-        ✕
-      </button>
-    </div>
+    <div class="bg-white w-full max-w-md mx-auto rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto shadow-2xl animate-slide-up">
 
-    <div class="bg-white w-full max-w-md mx-auto rounded-t-3xl sm:rounded-3xl p-4 sm:p-5 shadow-2xl animate-slide-up">
-      <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-3 min-w-0">
-          <img id="vpImg" src="" alt="" class="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0" />
-          <div class="min-w-0">
-            <h3 id="vpTitle" class="font-extrabold text-sm sm:text-base text-slate-900 truncate">Product Name</h3>
-            <p id="vpSubtitle" class="text-[11px] text-slate-500 truncate">Fresh Delivery</p>
-          </div>
-        </div>
-        <span id="vpCategoryBadge" class="text-[11px] font-bold instamart-blue-text bg-blue-50 px-2.5 py-1 rounded-lg shrink-0">
+      <!-- Large Full-Width Product Photo Header (Instamart Style) -->
+      <div class="relative w-full h-64 sm:h-72 bg-slate-100 overflow-hidden">
+        <img id="vpImg" src="" alt="" class="w-full h-full object-cover" />
+
+        <!-- Top-Left Close Arrow / Button -->
+        <button type="button" onclick="closeVariantPopup()" aria-label="Close popup"
+          class="absolute top-3.5 left-3.5 w-9 h-9 rounded-full bg-white/95 hover:bg-white text-slate-800 shadow-md flex items-center justify-center font-bold text-base active:scale-95 transition">
+          ⌄
+        </button>
+
+        <!-- Top-Right Category Badge -->
+        <span id="vpCategoryBadge"
+          class="absolute top-3.5 right-3.5 text-[11px] font-bold instamart-blue-text bg-white/95 px-2.5 py-1 rounded-lg shadow-xs">
           Veggies
+        </span>
+
+        <!-- Bottom-Left Veg Indicator -->
+        <span class="absolute bottom-3 left-3.5 w-4 h-4 bg-white rounded-xs border border-emerald-600 flex items-center justify-center shadow-2xs">
+          <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+        </span>
+
+        <!-- Bottom-Right Fresh Tag -->
+        <span class="absolute bottom-3 right-3.5 instamart-lime text-slate-950 font-extrabold text-[10px] px-2 py-0.5 rounded shadow-2xs">
+          FRESH DAILY
         </span>
       </div>
 
-      <div class="pt-3 pb-2">
-        <h4 class="font-extrabold text-sm text-slate-900">Select Quantity</h4>
-      </div>
+      <!-- Product Info & Quantity Cards -->
+      <div class="p-4 sm:p-5">
+        <div class="pb-3 border-b border-slate-100">
+          <h3 id="vpTitle" class="font-extrabold text-base sm:text-lg text-slate-900 leading-snug">Product Name</h3>
+          <p id="vpSubtitle" class="text-xs text-slate-500 mt-0.5">Fresh Delivery</p>
+        </div>
 
-      <div id="vpVariantCards" class="flex gap-3 overflow-x-auto no-scrollbar pb-3">
-        <!-- Variant cards populated by JS -->
-      </div>
+        <div class="pt-3 pb-2 flex items-center justify-between">
+          <h4 class="font-extrabold text-sm text-slate-900">Select Quantity</h4>
+          <span class="text-[11px] font-semibold text-slate-400">Tap + to add pack</span>
+        </div>
 
-      <button onclick="closeVariantPopup()"
-        class="mt-2 w-full instamart-blue hover:opacity-95 text-white px-4 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-extrabold text-sm transition">
-        <span id="vpItemTotal">Item Total: ₹0</span>
-        <span class="flex items-center gap-1">Confirm <span class="text-base leading-none">›</span></span>
-      </button>
+        <div id="vpVariantCards" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pb-3">
+          <!-- Variant cards populated by JS -->
+        </div>
+
+        <button type="button" onclick="closeVariantPopup()"
+          class="mt-2 w-full instamart-blue hover:opacity-95 text-white px-4 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-extrabold text-sm transition">
+          <span id="vpItemTotal">Item Total: ₹0</span>
+          <span class="flex items-center gap-1">Confirm <span class="text-base leading-none">›</span></span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -490,14 +510,14 @@
     };
 
     const DEFAULT_PRODUCTS = [
-      { id: "1", name: "Lady Finger (Bhindi)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:22, 500g:42", enabled: true, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=400&q=80" },
-      { id: "2", name: "Red Onion (Pyaz)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:18, 500g:35", enabled: true, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=400&q=80" },
-      { id: "3", name: "Tomato (Tamatar)", hindi: "Farm Fresh", category: "Veggies", variants: "250g:15, 500g:28", enabled: true, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80" },
-      { id: "4", name: "Potato (Aloo)", hindi: "Daily Essential", category: "Veggies", variants: "500g:20, 1kg:38", enabled: true, image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=400&q=80" },
-      { id: "5", name: "Fresh Cow Milk", hindi: "Morning Pouch", category: "Milk & Dairy", variants: "500ml:30, 1 Litre:58", enabled: true, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80" },
-      { id: "6", name: "Farm Fresh Eggs", hindi: "White Eggs", category: "Breakfast Essentials", variants: "6 Pcs:45, 12 Pcs:85", enabled: true, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=400&q=80" },
-      { id: "7", name: "Fresh Carrots (Gajar)", hindi: "Crunchy & Sweet", category: "Veggies", variants: "250g:18, 500g:34", enabled: true, image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=400&q=80" },
-      { id: "8", name: "Red Apples (Seb)", hindi: "Crisp & Juicy", category: "Fruit", variants: "500g:65, 1kg:125", enabled: true, image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=400&q=80" }
+      { id: "1", name: "Lady Finger (Bhindi)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:22, 500g:42", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=600&q=85" },
+      { id: "2", name: "Red Onion (Pyaz)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:18, 500g:35", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=600&q=85" },
+      { id: "3", name: "Tomato (Tamatar)", hindi: "Farm Fresh", category: "Veggies", variants: "250g:15, 500g:28", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=85" },
+      { id: "4", name: "Potato (Aloo)", hindi: "Daily Essential", category: "Veggies", variants: "500g:20, 1kg:38", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=85" },
+      { id: "5", name: "Fresh Cow Milk", hindi: "Morning Pouch", category: "Milk & Dairy", variants: "500ml:30, 1 Litre:58", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=600&q=85" },
+      { id: "6", name: "Farm Fresh Eggs", hindi: "White Eggs", category: "Breakfast Essentials", variants: "6 Pcs:45, 12 Pcs:85", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=85" },
+      { id: "7", name: "Fresh Carrots (Gajar)", hindi: "Crunchy & Sweet", category: "Veggies", variants: "250g:18, 500g:34", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=600&q=85" },
+      { id: "8", name: "Red Apples (Seb)", hindi: "Crisp & Juicy", category: "Fruit", variants: "500g:65, 1kg:125", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=85" }
     ];
 
     let savedSettings = JSON.parse(localStorage.getItem("vegman_settings")) || {};
@@ -508,7 +528,10 @@
     let slotGroups = JSON.parse(localStorage.getItem("vegman_slots")) || JSON.parse(JSON.stringify(DEFAULT_SLOTS));
     let mainCategories = JSON.parse(localStorage.getItem("vegman_main_categories")) || [...DEFAULT_MAIN_CATEGORIES];
     let categoryImages = { ...DEFAULT_CATEGORY_IMAGES, ...(JSON.parse(localStorage.getItem("vegman_cat_images")) || {}) };
-    let products = JSON.parse(localStorage.getItem("vegman_products")) || [...DEFAULT_PRODUCTS];
+    let products = (JSON.parse(localStorage.getItem("vegman_products")) || [...DEFAULT_PRODUCTS]).map(p => ({
+      ...p,
+      outOfStock: Boolean(p.outOfStock)
+    }));
 
     let selectedVariantIdx = {};
     let activePopupProductId = null;
@@ -774,16 +797,18 @@
       renderProducts();
     }
 
-    // ==================== QUANTITY POPUP MODAL ====================
+    // ==================== QUANTITY & FULL PHOTO POPUP MODAL ====================
     function handleCardAction(productId) {
       const product = products.find(p => String(p.id) === String(productId));
-      if (!product || product.enabled === false) return;
+      if (!product || product.enabled === false || product.outOfStock) return;
       const vars = parseVariants(product.variants);
       if (vars.length > 1) openVariantPopup(productId);
       else addToCart(productId);
     }
 
     function openVariantPopup(productId) {
+      const product = products.find(p => String(p.id) === String(productId));
+      if (!product || product.outOfStock) return;
       activePopupProductId = productId;
       renderVariantPopup();
       document.getElementById("variantPopupModal").classList.remove("hidden");
@@ -797,6 +822,7 @@
 
     function adjustVariantQtyInPopup(productId, vIdx, delta) {
       const product = products.find(p => String(p.id) === String(productId));
+      if (!product || product.outOfStock) return;
       const vars = parseVariants(product.variants);
       const chosenVar = vars[vIdx];
 
@@ -828,7 +854,7 @@
       if (!product) return;
 
       const vars = parseVariants(product.variants);
-      document.getElementById("vpImg").src = product.image || "https://via.placeholder.com/150?text=Vegman";
+      document.getElementById("vpImg").src = product.image || "https://via.placeholder.com/600x600?text=Vegman";
       document.getElementById("vpTitle").textContent = product.name;
       document.getElementById("vpSubtitle").textContent = product.hindi || "Fresh Delivery";
       document.getElementById("vpCategoryBadge").textContent = product.category;
@@ -841,25 +867,27 @@
         productTotalInCart += qtyInCart * v.price;
 
         return `
-          <div class="w-36 shrink-0 rounded-2xl border ${qtyInCart > 0 ? 'instamart-blue-border bg-blue-50/20' : 'border-slate-200 bg-white'} p-2.5 flex flex-col justify-between shadow-2xs">
-            <div class="relative aspect-square w-full rounded-xl bg-slate-50 overflow-hidden mb-2">
-              <img src="${product.image || 'https://via.placeholder.com/200?text=Vegman'}" alt="${v.label}" class="w-full h-full object-cover" />
+          <div class="rounded-2xl border ${qtyInCart > 0 ? 'instamart-blue-border bg-blue-50/30' : 'border-slate-200 bg-white'} p-3 flex flex-col justify-between shadow-2xs">
+            <div class="flex items-start justify-between gap-1 mb-2">
+              <div>
+                <div class="font-extrabold text-xs text-slate-900">${v.label}</div>
+                <div class="font-extrabold text-sm text-slate-900 mt-0.5">₹${v.price}</div>
+              </div>
               ${qtyInCart === 0 ? `
-                <button onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)"
-                  class="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-md flex items-center justify-center instamart-blue-text font-extrabold text-xl leading-none active:scale-95 transition">
+                <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)"
+                  class="w-7 h-7 rounded-lg bg-white border border-slate-200 shadow-xs flex items-center justify-center instamart-blue-text font-extrabold text-lg leading-none active:scale-95 transition">
                   +
                 </button>
               ` : `
-                <div class="absolute bottom-1.5 right-1.5 h-8 px-1.5 rounded-xl bg-white border instamart-blue-border shadow-md flex items-center gap-2 instamart-blue-text font-extrabold text-xs">
-                  <button onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, -1)" class="px-1 text-sm">−</button>
+                <div class="h-7 px-1 rounded-lg bg-white border instamart-blue-border shadow-xs flex items-center gap-1.5 instamart-blue-text font-extrabold text-xs">
+                  <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, -1)" class="px-1 text-sm">−</button>
                   <span>${qtyInCart}</span>
-                  <button onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)" class="px-1 text-sm">+</button>
+                  <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)" class="px-1 text-sm">+</button>
                 </div>
               `}
             </div>
-            <div>
-              <div class="font-extrabold text-xs text-slate-900">${v.label}</div>
-              <div class="font-extrabold text-sm text-slate-900 mt-0.5">₹${v.price}</div>
+            <div class="text-[10px] font-semibold ${qtyInCart > 0 ? 'instamart-blue-text' : 'text-slate-400'}">
+              ${qtyInCart > 0 ? `Subtotal: ₹${qtyInCart * v.price}` : 'Available'}
             </div>
           </div>
         `;
@@ -891,41 +919,50 @@
       }
 
       grid.innerHTML = filtered.map(p => {
+        const isOos = Boolean(p.outOfStock);
         const vars = parseVariants(p.variants);
         const hasMultipleVariants = vars.length > 1;
         const activeIdx = Math.min(selectedVariantIdx[p.id] || 0, vars.length - 1);
         const activeVar = vars[activeIdx];
-        const totalProdQty = getTotalProductQtyInCart(p.id);
+        const totalProdQty = isOos ? 0 : getTotalProductQtyInCart(p.id);
 
         return `
-        <div class="flex flex-col bg-white rounded-2xl border border-slate-100 p-2 shadow-2xs">
-          <div onclick="${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
-            class="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-200/70 overflow-hidden mb-2 ${hasMultipleVariants ? 'cursor-pointer' : ''}">
+        <div class="flex flex-col bg-white rounded-2xl border border-slate-100 p-2 shadow-2xs ${isOos ? 'opacity-75' : ''}">
+          <div onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
+            class="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-200/70 overflow-hidden mb-2 ${!isOos ? 'cursor-pointer' : ''}">
             <img src="${p.image || 'https://via.placeholder.com/300x300?text=Vegman'}" alt="${p.name}"
-              class="w-full h-full object-cover" />
+              class="w-full h-full object-cover ${isOos ? 'grayscale' : ''}" />
 
-            <span class="absolute bottom-1.5 left-1.5 w-3.5 h-3.5 bg-white rounded-xs border border-emerald-600 flex items-center justify-center">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-            </span>
-
-            ${totalProdQty === 0 ? `
-              <button onclick="event.stopPropagation(); handleCardAction('${p.id}')"
-                class="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-md flex items-center justify-center instamart-blue-text font-extrabold text-xl leading-none active:scale-95 transition">
-                +
-              </button>
-            ` : `
-              <div onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
-                class="absolute bottom-1.5 right-1.5 h-8 px-1.5 rounded-xl bg-white border instamart-blue-border shadow-md flex items-center gap-2 instamart-blue-text font-extrabold text-xs cursor-pointer">
-                <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', -1)`}" class="px-1 text-sm">−</button>
-                <span>${totalProdQty}</span>
-                <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', 1)`}" class="px-1 text-sm">+</button>
+            ${isOos ? `
+              <div class="absolute inset-0 bg-slate-900/35 flex items-center justify-center p-2">
+                <span class="bg-rose-600 text-white text-[10px] font-extrabold tracking-wide px-2.5 py-1 rounded-lg shadow">
+                  OUT OF STOCK
+                </span>
               </div>
+            ` : `
+              <span class="absolute bottom-1.5 left-1.5 w-3.5 h-3.5 bg-white rounded-xs border border-emerald-600 flex items-center justify-center">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+              </span>
+
+              ${totalProdQty === 0 ? `
+                <button onclick="event.stopPropagation(); handleCardAction('${p.id}')"
+                  class="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-md flex items-center justify-center instamart-blue-text font-extrabold text-xl leading-none active:scale-95 transition">
+                  +
+                </button>
+              ` : `
+                <div onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
+                  class="absolute bottom-1.5 right-1.5 h-8 px-1.5 rounded-xl bg-white border instamart-blue-border shadow-md flex items-center gap-2 instamart-blue-text font-extrabold text-xs cursor-pointer">
+                  <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', -1)`}" class="px-1 text-sm">−</button>
+                  <span>${totalProdQty}</span>
+                  <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', 1)`}" class="px-1 text-sm">+</button>
+                </div>
+              `}
             `}
           </div>
 
           <div class="flex flex-wrap gap-1 mb-1">
             ${vars.map((v, idx) => `
-              <button type="button" onclick="${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
+              <button type="button" onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
                 class="px-2 py-0.5 rounded-md text-[10px] font-bold border transition ${
                   idx === activeIdx
                     ? 'instamart-blue-border instamart-blue-text bg-blue-50/70'
@@ -938,11 +975,14 @@
 
           <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
             <span class="font-extrabold text-sm text-slate-900">₹${activeVar.price}</span>
-            <span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">FRESH</span>
+            ${isOos
+              ? `<span class="bg-rose-100 text-rose-700 font-extrabold text-[9px] px-1.5 py-0.5 rounded">OUT OF STOCK</span>`
+              : `<span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">FRESH</span>`
+            }
           </div>
 
-          <h3 onclick="${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
-            class="font-semibold text-xs text-slate-800 leading-snug line-clamp-2 ${hasMultipleVariants ? 'cursor-pointer' : ''}">
+          <h3 onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
+            class="font-semibold text-xs text-slate-800 leading-snug line-clamp-2 ${!isOos ? 'cursor-pointer' : ''}">
             ${p.name}${p.hindi ? ' • ' + p.hindi : ''}
           </h3>
         </div>
@@ -951,6 +991,7 @@
 
     function addToCart(id) {
       const product = products.find(p => String(p.id) === String(id));
+      if (!product || product.outOfStock) return;
       const vars = parseVariants(product.variants);
       const activeIdx = Math.min(selectedVariantIdx[id] || 0, vars.length - 1);
       const chosenVar = vars[activeIdx];
@@ -1412,6 +1453,7 @@
         category,
         variants: variantPairs.join(", "),
         enabled: true,
+        outOfStock: false,
         image
       });
 
@@ -1433,16 +1475,25 @@
       document.getElementById("catalogCountLabel").textContent = `${products.length} items`;
       list.innerHTML = products.map((p, idx) => {
         const isOn = p.enabled !== false;
+        const isOos = Boolean(p.outOfStock);
         return `
         <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
           <div>
             <span class="font-bold text-slate-900 text-sm">${p.name}</span>
             <span class="text-slate-500">(${p.category})</span>
           </div>
-          <div class="flex items-center justify-end gap-2">
+          <div class="flex items-center flex-wrap justify-end gap-2">
             <input type="text" value="${p.variants}" onchange="updateAdminVariants(${idx}, this.value)"
               title="Format: Size:Price, Size:Price"
-              class="w-44 px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold" />
+              class="w-36 sm:w-44 px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold" />
+            <button type="button" onclick="toggleOutOfStock(${idx})"
+              class="px-2.5 py-1.5 rounded-xl font-extrabold text-[11px] border transition ${
+                isOos
+                  ? "bg-rose-600 text-white border-rose-600"
+                  : "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100"
+              }">
+              ${isOos ? "Out of Stock ✓" : "Out of Stock"}
+            </button>
             <button type="button" onclick="toggleProductOnOff(${idx})"
               class="px-3 py-1.5 rounded-xl font-extrabold text-[11px] transition ${
                 isOn ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
@@ -1453,6 +1504,18 @@
           </div>
         </div>
       `}).join("");
+    }
+
+    function toggleOutOfStock(idx) {
+      const nextOos = !Boolean(products[idx].outOfStock);
+      products[idx].outOfStock = nextOos;
+      if (nextOos) {
+        cart = cart.filter(item => String(item.id) !== String(products[idx].id));
+        updateCartUI();
+      }
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+      renderProducts();
+      renderAdminCatalog();
     }
 
     function updateAdminVariants(idx, val) {
@@ -1471,7 +1534,10 @@
 
     function deleteProduct(idx) {
       if (!confirm(`Delete ${products[idx].name}?`)) return;
+      const removedId = products[idx].id;
       products.splice(idx, 1);
+      cart = cart.filter(item => String(item.id) !== String(removedId));
+      updateCartUI();
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
       renderProducts();
