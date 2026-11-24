@@ -133,7 +133,7 @@
     <div class="bg-slate-900 text-white rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
       <div>
         <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin Panel</h2>
-        <p id="adminSyncHint" class="text-xs text-slate-300">Edit products/prices freely, then tap <strong>Update Catalog</strong> to push to all customers.</p>
+        <p id="adminSyncHint" class="text-xs text-slate-300">Edit categories, category photos, products & stock freely, then tap <strong>Update Catalog</strong> to push to all customers.</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button id="updateCatalogBtn" type="button" onclick="manualUpdateCatalog()"
@@ -146,7 +146,7 @@
     <!-- Main Categories Manager -->
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
       <h2 class="font-extrabold text-base text-slate-900 mb-1">Main Categories (All Items, Veggies, Fruit & More)</h2>
-      <p class="text-xs text-slate-500 mb-3">Add new top categories, remove unwanted ones, or update their circular icons.</p>
+      <p class="text-xs text-slate-500 mb-3">Add/remove top categories or upload circular icons, then tap <strong>Update Catalog</strong> to publish to customers.</p>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
         <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
@@ -610,11 +610,13 @@
       }
     }
 
-    // ==================== MANUAL CATALOG PUSH (ADMIN) & CUSTOMER PULL ====================
+    // ==================== MANUAL CATALOG + CATEGORY SYNC ====================
     async function manualUpdateCatalog() {
       const btn = document.getElementById("updateCatalogBtn");
       const ind = document.getElementById("syncIndicator");
       localStorage.setItem("vegman_products", JSON.stringify(products));
+      localStorage.setItem("vegman_main_categories", JSON.stringify(mainCategories));
+      localStorage.setItem("vegman_cat_images", JSON.stringify(categoryImages));
 
       if (!settings.googleScriptUrl) {
         alert("Google Script URL missing in Store Settings.");
@@ -635,7 +637,9 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "sync_catalog",
-            catalog: products
+            catalog: products,
+            mainCategories: mainCategories,
+            categoryImages: categoryImages
           })
         });
 
@@ -643,7 +647,7 @@
           ind.textContent = "Catalog Updated ✓";
           ind.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700";
         }
-        alert("Catalog updated! All customers will see the latest items & stock status.");
+        alert("Catalog & Categories updated! All customers will see the latest changes.");
       } catch (e) {
         console.error("Catalog sync error:", e);
         if (ind) {
@@ -664,19 +668,44 @@
       try {
         const res = await fetch(settings.googleScriptUrl + "?t=" + Date.now());
         const data = await res.json();
-        if (data.status === "success" && Array.isArray(data.catalog) && data.catalog.length > 0) {
-          const incoming = data.catalog.map(item => ({
-            ...item,
-            enabled: item.enabled !== undefined ? Boolean(item.enabled) : true,
-            outOfStock: Boolean(item.outOfStock)
-          }));
+        if (data.status === "success") {
+          let changed = false;
 
-          if (JSON.stringify(incoming) !== JSON.stringify(products)) {
-            products = incoming;
-            localStorage.setItem("vegman_products", JSON.stringify(products));
-            const activeIds = new Set(products.filter(p => p.enabled !== false && !p.outOfStock).map(p => String(p.id)));
-            cart = cart.filter(c => activeIds.has(String(c.id)));
-            updateCartUI();
+          if (Array.isArray(data.mainCategories) && data.mainCategories.length > 0) {
+            if (JSON.stringify(data.mainCategories) !== JSON.stringify(mainCategories)) {
+              mainCategories = data.mainCategories;
+              localStorage.setItem("vegman_main_categories", JSON.stringify(mainCategories));
+              changed = true;
+            }
+          }
+
+          if (data.categoryImages && typeof data.categoryImages === "object") {
+            const mergedImgs = { ...DEFAULT_CATEGORY_IMAGES, ...data.categoryImages };
+            if (JSON.stringify(mergedImgs) !== JSON.stringify(categoryImages)) {
+              categoryImages = mergedImgs;
+              localStorage.setItem("vegman_cat_images", JSON.stringify(categoryImages));
+              changed = true;
+            }
+          }
+
+          if (Array.isArray(data.catalog) && data.catalog.length > 0) {
+            const incoming = data.catalog.map(item => ({
+              ...item,
+              enabled: item.enabled !== undefined ? Boolean(item.enabled) : true,
+              outOfStock: Boolean(item.outOfStock)
+            }));
+
+            if (JSON.stringify(incoming) !== JSON.stringify(products)) {
+              products = incoming;
+              localStorage.setItem("vegman_products", JSON.stringify(products));
+              const activeIds = new Set(products.filter(p => p.enabled !== false && !p.outOfStock).map(p => String(p.id)));
+              cart = cart.filter(c => activeIds.has(String(c.id)));
+              updateCartUI();
+              changed = true;
+            }
+          }
+
+          if (changed) {
             renderCategories();
             renderProducts();
             if (activePopupProductId) renderVariantPopup();
@@ -1058,19 +1087,13 @@
         const totalProdQty = isOos ? 0 : getTotalProductQtyInCart(p.id);
 
         return `
-        <div class="flex flex-col bg-white rounded-2xl border border-slate-100 p-2 shadow-2xs smooth-card animate-fade-in ${isOos ? 'opacity-75' : ''}">
+        <div class="flex flex-col bg-white rounded-2xl border border-slate-100 p-2 shadow-2xs smooth-card animate-fade-in">
           <div onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
             class="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-200/70 overflow-hidden mb-2 ${!isOos ? 'cursor-pointer' : ''}">
             <img src="${p.image || 'https://via.placeholder.com/300x300?text=Vegman'}" alt="${p.name}"
-              class="w-full h-full object-cover transition-transform duration-300 ${!isOos ? 'hover:scale-105' : 'grayscale'}" />
+              class="w-full h-full object-cover transition-all duration-300 ${isOos ? 'opacity-55' : 'hover:scale-105'}" />
 
-            ${isOos ? `
-              <div class="absolute inset-0 bg-slate-900/35 flex items-center justify-center p-2">
-                <span class="bg-rose-600 text-white text-[10px] font-extrabold tracking-wide px-2.5 py-1 rounded-lg shadow">
-                  OUT OF STOCK
-                </span>
-              </div>
-            ` : `
+            ${!isOos ? `
               <span class="absolute bottom-1.5 left-1.5 w-3.5 h-3.5 bg-white rounded-xs border border-emerald-600 flex items-center justify-center">
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
               </span>
@@ -1088,7 +1111,7 @@
                   <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', 1)`}" class="px-1 text-sm smooth-btn">+</button>
                 </div>
               `}
-            `}
+            ` : ''}
           </div>
 
           <div class="flex flex-wrap gap-1 mb-1">
@@ -1104,12 +1127,9 @@
             `).join("")}
           </div>
 
-          <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+          <div class="flex items-center gap-2 flex-wrap mb-0.5">
             <span class="font-extrabold text-sm text-slate-900">₹${activeVar.price}</span>
-            ${isOos
-              ? `<span class="bg-rose-100 text-rose-700 font-extrabold text-[9px] px-1.5 py-0.5 rounded">OUT OF STOCK</span>`
-              : `<span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">IN STOCK</span>`
-            }
+            ${isOos ? `<span class="text-slate-500 font-semibold text-[11px]">Out of Stock</span>` : ''}
           </div>
 
           <h3 onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
@@ -1375,7 +1395,7 @@
       window.open(waUrl, "_blank");
     }
 
-    // ==================== ADMIN FUNCTIONS (LOCAL DRAFT UNTIL "Update Catalog" CLICKED) ====================
+    // ==================== ADMIN FUNCTIONS ====================
     function renderMainCategoryManager() {
       const chipsEl = document.getElementById("mainCategoryChipsList");
       chipsEl.innerHTML = mainCategories.map((cat, idx) => `
@@ -1408,6 +1428,7 @@
       if (!mainCategories.some(c => c.toLowerCase() === val.toLowerCase())) {
         mainCategories.push(val);
         localStorage.setItem("vegman_main_categories", JSON.stringify(mainCategories));
+        markDraftUnsaved();
       }
       inp.value = "";
       renderMainCategoryManager();
@@ -1422,6 +1443,7 @@
       if (selectedCategory === removed) {
         selectedCategory = mainCategories[0] || "All Items";
       }
+      markDraftUnsaved();
       renderMainCategoryManager();
       renderCategories();
       renderProducts();
@@ -1464,8 +1486,9 @@
       if (!cat || !url) return;
       categoryImages[cat] = url;
       localStorage.setItem("vegman_cat_images", JSON.stringify(categoryImages));
+      markDraftUnsaved();
       renderCategories();
-      document.getElementById("catPhotoUploadStatus").textContent = `Saved icon for "${cat}" ✓`;
+      document.getElementById("catPhotoUploadStatus").textContent = `Saved icon for "${cat}" ✓ (Tap Update Catalog to publish)`;
     }
 
     function renderAdminSlotToggles() {
