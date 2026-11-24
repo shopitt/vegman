@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vegman — Online Fresh-Cut Vegetables</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="pb-24">
+
+  <!-- Top Header -->
+  <header class="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-extrabold text-lg shadow-sm">
+          🥬
+        </div>
+        <div>
+          <h1 id="headerStoreName" class="font-extrabold text-base sm:text-lg leading-tight text-slate-900">Vegman</h1>
+          <p class="text-xs text-emerald-700 font-medium">Cut Fresh Daily • Morning Delivery</p>
+        </div>
+      </div>
+
+      <!-- Mode Switcher -->
+      <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button id="tabStoreBtn" onclick="switchTab('store')" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm transition">
+          1. Store
+        </button>
+        <button id="tabAdminBtn" onclick="switchTab('admin')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+          2. Admin
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 1. CUSTOMER STORE VIEW ==================== -->
+  <main id="storeView" class="max-w-5xl mx-auto px-4 pt-4">
+    
+    <!-- Banner -->
+    <div class="bg-gradient-to-r from-emerald-700 to-teal-600 rounded-2xl p-4 sm:p-5 text-white mb-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <span class="inline-block bg-white/20 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full mb-1.5">
+          VEGMAN • HYGIENIC & READY TO COOK
+        </span>
+        <h2 class="text-lg sm:text-xl font-extrabold">Order Tonight, Delivered Fresh Tomorrow Morning</h2>
+        <p class="text-xs sm:text-sm text-emerald-100 mt-0.5">Choose your weight & exact cutting style. Zero delivery fee & zero payment gateway charges.</p>
+      </div>
+      <div class="bg-white/15 backdrop-blur-sm rounded-xl px-3.5 py-2 text-xs font-semibold shrink-0">
+        <div>🕕 Morning Slot 1: 6:30 AM – 8:00 AM</div>
+        <div class="mt-1">🕗 Morning Slot 2: 8:00 AM – 10:00 AM</div>
+        <div class="mt-1 text-emerald-100">📞 Support: +91 97007 70056</div>
+      </div>
+    </div>
+
+    <!-- Search & Category Filter -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-5">
+      <input id="searchInput" type="text" oninput="renderProducts()" placeholder="Search vegetables (e.g., Bhindi, Onion, Carrot)..."
+        class="w-full sm:w-72 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+      <div id="categoryBar" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+        <!-- Categories populated by JS -->
+      </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Products populated by JS -->
+    </div>
+  </main>
+
+  <!-- ==================== 2. ADMIN PANEL VIEW ==================== -->
+  <section id="adminView" class="hidden max-w-4xl mx-auto px-4 pt-5">
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 mb-5 text-xs text-emerald-900">
+      <strong>Connected Live:</strong> Store Name (<strong>Vegman</strong>), WhatsApp (<strong>919700770056</strong>), UPI (<strong>shaikjahangir149-3@oksbi</strong>), and your <strong>Google Sheets Web App URL</strong> are pre-configured in this file.
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <!-- Store & Google Sheets Settings -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <h2 class="font-extrabold text-base text-slate-900 mb-3">Store & Google Sheets Connection</h2>
+        <div class="space-y-3 text-sm">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Store / Brand Name</label>
+            <input id="adminStoreName" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">WhatsApp Number (with 91, no +)</label>
+            <input id="adminWhatsapp" type="text" placeholder="919700770056" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Your UPI ID (for Zero-Fee QR)</label>
+            <input id="adminUpiId" type="text" placeholder="shaikjahangir149-3@oksbi" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Google Sheets Web App URL (/exec)</label>
+            <input id="adminScriptUrl" type="url" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Free ImgBB API Key (Optional for Direct Photo Upload)</label>
+            <input id="adminImgbbKey" type="text" placeholder="Paste ImgBB API key to upload from phone" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
+          </div>
+          <button onclick="saveAdminSettings()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition">
+            Save Store Settings
+          </button>
+        </div>
+      </div>
+
+      <!-- Add New Vegetable -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <h2 class="font-extrabold text-base text-slate-900 mb-3">Add New Cut Vegetable</h2>
+        <div class="space-y-3 text-sm">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">English Name *</label>
+              <input id="newVegName" type="text" placeholder="e.g., Lady Finger" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Hindi / Local Name</label>
+              <input id="newVegHindi" type="text" placeholder="e.g., Bhindi" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Category</label>
+              <select id="newVegCat" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+                <option value="Daily Veggies">Daily Veggies</option>
+                <option value="Leafy & Herbs">Leafy & Herbs</option>
+                <option value="Gourds & Beans">Gourds & Beans</option>
+                <option value="Salad & Mixes">Salad & Mixes</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Price for 250g (₹) *</label>
+              <input id="newVegPrice" type="number" placeholder="25" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Upload Photo or Paste Image URL</label>
+            <input id="newVegFile" type="file" accept="image/*" onchange="handlePhotoUpload(event)" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 mb-2" />
+            <input id="newVegImgUrl" type="url" placeholder="Or paste direct image URL (https://...)" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
+            <p id="uploadStatus" class="text-[11px] text-emerald-700 mt-1"></p>
+          </div>
+          <button onclick="addNewVegetable()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition">
+            + Add Vegetable to Store
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Existing Catalog -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mt-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-extrabold text-base text-slate-900">Manage Prices & Stock</h2>
+        <button onclick="resetCatalog()" class="text-xs text-rose-600 font-semibold hover:underline">Reset Default List</button>
+      </div>
+      <div id="adminCatalogList" class="divide-y divide-slate-100">
+        <!-- Admin items populated by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FLOATING CART BAR ==================== -->
+  <div id="floatingCartBar" class="hidden fixed bottom-4 inset-x-4 max-w-xl mx-auto z-30">
+    <button onclick="openCheckoutModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center justify-between font-bold transition">
+      <div class="flex items-center gap-2.5">
+        <span id="cartBadgeCount" class="bg-white text-emerald-700 text-xs font-extrabold px-2.5 py-1 rounded-lg">0 Items</span>
+        <span class="text-sm">View Basket & Checkout</span>
+      </div>
+      <span id="cartBadgeTotal" class="text-base font-extrabold">₹0</span>
+    </button>
+  </div>
+
+  <!-- ==================== CHECKOUT MODAL ==================== -->
+  <div id="checkoutModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto p-5 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-extrabold text-lg text-slate-900">Your Vegman Basket</h3>
+        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200">✕</button>
+      </div>
+
+      <!-- Cart Items -->
+      <div id="checkoutItemsList" class="divide-y divide-slate-100 my-3 max-h-48 overflow-y-auto">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="bg-slate-50 rounded-xl p-3 flex items-center justify-between font-extrabold text-base mb-4">
+        <span>Total Payable</span>
+        <span id="checkoutTotalAmount" class="text-emerald-700 text-lg">₹0</span>
+      </div>
+
+      <!-- Customer Details -->
+      <div class="space-y-3 text-sm mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Your Name *</label>
+            <input id="custName" type="text" placeholder="Enter full name" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Mobile / WhatsApp No. *</label>
+            <input id="custPhone" type="tel" placeholder="10-digit mobile number" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Complete Delivery Address *</label>
+          <textarea id="custAddress" rows="2" placeholder="House/Flat No., Building, Landmark, Area" class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Morning Delivery Slot</label>
+          <select id="custSlot" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+            <option value="Tomorrow 6:30 AM - 8:00 AM">Tomorrow 6:30 AM – 8:00 AM</option>
+            <option value="Tomorrow 8:00 AM - 10:00 AM">Tomorrow 8:00 AM – 10:00 AM</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
+      <div class="mb-4">
+        <label class="block text-xs font-bold text-slate-700 mb-2">Select Payment Method (Zero Extra Charges)</label>
+        <div class="grid grid-cols-2 gap-2.5">
+          <button type="button" id="payModeUpiBtn" onclick="setPaymentMode('UPI')" class="p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-left transition">
+            <div class="font-extrabold text-xs text-emerald-900">UPI QR Pay</div>
+            <div class="text-[11px] text-emerald-700">GPay / PhonePe / Paytm</div>
+          </button>
+          <button type="button" id="payModeCodBtn" onclick="setPaymentMode('COD')" class="p-3 rounded-xl border border-slate-200 bg-white text-left transition">
+            <div class="font-extrabold text-xs text-slate-800">Cash on Delivery</div>
+            <div class="text-[11px] text-slate-500">Pay at morning doorstep</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- UPI QR Panel -->
+      <div id="upiQrPanel" class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 mb-4 text-center">
+        <p class="text-xs font-bold text-emerald-900 mb-1">Pay to <span class="underline">Shaik Jahangir</span> (Vegman)</p>
+        <p class="text-xs font-bold text-emerald-800 mb-2">Scan with any UPI App to Pay <span id="qrAmountLabel" class="underline">₹0</span></p>
+        <img id="upiQrImage" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-xl bg-white p-2 border border-emerald-200 shadow-xs" />
+        <div class="mt-2.5 flex items-center justify-center gap-2">
+          <span id="displayUpiId" class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-slate-800">shaikjahangir149-3@oksbi</span>
+          <button type="button" onclick="copyUpiId()" class="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-2.5 py-1 rounded-lg">Copy ID</button>
+        </div>
+        <p class="text-[11px] text-slate-600 mt-2">
+          After completing your UPI payment, click the button below to confirm your order on WhatsApp.
+        </p>
+      </div>
+
+      <button id="placeOrderBtn" onclick="submitOrder()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg text-sm transition">
+        Place Order & Send on WhatsApp →
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    // =========================================================================
+    // VEGMAN PERMANENT CONFIGURATION (CONNECTED TO YOUR GOOGLE SHEET)
+    // =========================================================================
+    const DEFAULT_SETTINGS = {
+      storeName: "Vegman",
+      whatsappNumber: "919700770056",
+      upiId: "shaikjahangir149-3@oksbi",
+      payeeName: "Shaik Jahangir",
+      googleScriptUrl: "https://script.google.com/macros/s/AKfycby9mVJlxVz1zWAHf7ZSJQgwQ6BeaGCj4jkT4CnldHH5fTXG-Dt7Yv5he8fSfRXp0Tft/exec",
+      imgbbApiKey: "" // Optional: Free ImgBB API key for direct photo uploads
+    };
+
+    const DEFAULT_PRODUCTS = [
+      { id: 1, name: "Lady Finger", hindi: "Bhindi", category: "Daily Veggies", price250: 22, inStock: true, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=500&q=80" },
+      { id: 2, name: "Red Onion", hindi: "Pyaz", category: "Daily Veggies", price250: 18, inStock: true, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=500&q=80" },
+      { id: 3, name: "Carrot", hindi: "Gajar", category: "Daily Veggies", price250: 20, inStock: true, image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=500&q=80" },
+      { id: 4, name: "French Beans", hindi: "Fansi", category: "Gourds & Beans", price250: 28, inStock: true, image: "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=500&q=80" },
+      { id: 5, name: "Bottle Gourd", hindi: "Lauki / Dudhi", category: "Gourds & Beans", price250: 16, inStock: true, image: "https://images.unsplash.com/photo-1590779033100-9f60a05a013d?auto=format&fit=crop&w=500&q=80" },
+      { id: 6, name: "Fresh Spinach", hindi: "Palak (Cleaned)", category: "Leafy & Herbs", price250: 15, inStock: true, image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=500&q=80" }
+    ];
+
+    const CUT_STYLES = ["Fine Chopped", "Medium Cubes", "Thin Sliced", "Julienne / Strips"];
+    const WEIGHT_OPTIONS = [
+      { label: "250g", multiplier: 1 },
+      { label: "500g", multiplier: 2 },
+      { label: "1kg", multiplier: 4 }
+    ];
+
+    // App State
+    let savedSettings = JSON.parse(localStorage.getItem("vegman_settings")) || {};
+    let settings = { ...DEFAULT_SETTINGS, ...savedSettings };
+    if (!settings.googleScriptUrl) settings.googleScriptUrl = DEFAULT_SETTINGS.googleScriptUrl;
+
+    let products = JSON.parse(localStorage.getItem("vegman_products")) || [...DEFAULT_PRODUCTS];
+    let cart = [];
+    let selectedCategory = "All";
+    let paymentMode = "UPI";
+
+    // Initialize Store
+    async function init() {
+      applySettingsToUI();
+      renderCategories();
+      renderProducts();
+      renderAdminCatalog();
+
+      // Fetch live catalog from Google Sheets if URL is configured
+      if (settings.googleScriptUrl) {
+        try {
+          const res = await fetch(settings.googleScriptUrl);
+          const data = await res.json();
+          if (data.status === "success" && Array.isArray(data.catalog) && data.catalog.length > 0) {
+            products = data.catalog;
+            localStorage.setItem("vegman_products", JSON.stringify(products));
+            renderCategories();
+            renderProducts();
+            renderAdminCatalog();
+          }
+        } catch (err) {
+          console.log("Using local catalog fallback:", err);
+        }
+      }
+    }
+
+    function applySettingsToUI() {
+      document.getElementById("headerStoreName").textContent = settings.storeName;
+      document.title = settings.storeName + " — Fresh-Cut Vegetables";
+      document.getElementById("adminStoreName").value = settings.storeName;
+      document.getElementById("adminWhatsapp").value = settings.whatsappNumber;
+      document.getElementById("adminUpiId").value = settings.upiId;
+      document.getElementById("adminScriptUrl").value = settings.googleScriptUrl || "";
+      document.getElementById("adminImgbbKey").value = settings.imgbbApiKey || "";
+      document.getElementById("displayUpiId").textContent = settings.upiId;
+    }
+
+    function switchTab(tab) {
+      const isStore = tab === "store";
+      document.getElementById("storeView").classList.toggle("hidden", !isStore);
+      document.getElementById("adminView").classList.toggle("hidden", isStore);
+      document.getElementById("tabStoreBtn").className = isStore
+        ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm transition"
+        : "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+      document.getElementById("tabAdminBtn").className = !isStore
+        ? "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-emerald-700 shadow-sm transition"
+        : "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+    }
+
+    function renderCategories() {
+      const cats = ["All", ...new Set(products.map(p => p.category))];
+      const bar = document.getElementById("categoryBar");
+      bar.innerHTML = cats.map(cat => `
+        <button onclick="selectCategory('${cat}')"
+          class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition ${
+            selectedCategory === cat
+              ? "bg-emerald-600 text-white border-emerald-600"
+              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+          }">
+          ${cat}
+        </button>
+      `).join("");
+    }
+
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      renderCategories();
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const grid = document.getElementById("productGrid");
+
+      const filtered = products.filter(p => {
+        const matchesCat = selectedCategory === "All" || p.category === selectedCategory;
+        const matchesQuery = p.name.toLowerCase().includes(query) || (p.hindi && p.hindi.toLowerCase().includes(query));
+        return matchesCat && matchesQuery;
+      });
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between ${!p.inStock ? 'opacity-60' : ''}">
+          <div>
+            <div class="relative h-40 bg-slate-100">
+              <img src="${p.image || 'https://via.placeholder.com/400x250?text=Vegman+Fresh'}" alt="${p.name}" class="w-full h-full object-cover" />
+              <span class="absolute top-2.5 left-2.5 bg-white/95 text-slate-800 text-[10px] font-extrabold px-2.5 py-1 rounded-lg shadow-xs">
+                ${p.category}
+              </span>
+              ${!p.inStock ? `<span class="absolute inset-0 bg-slate-900/50 text-white font-extrabold text-sm flex items-center justify-center">OUT OF STOCK</span>` : ''}
+            </div>
+            <div class="p-4">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <h3 class="font-extrabold text-base text-slate-900">${p.name}</h3>
+                  <p class="text-xs text-slate-500">${p.hindi || ''}</p>
+                </div>
+                <div class="text-right">
+                  <span id="priceTag-${p.id}" class="font-extrabold text-base text-emerald-700">₹${p.price250}</span>
+                  <span class="block text-[10px] text-slate-400">Cut & Cleaned</span>
+                </div>
+              </div>
+
+              <!-- Weight Selector -->
+              <div class="mt-3">
+                <label class="block text-[11px] font-bold text-slate-500 mb-1">Select Weight</label>
+                <select id="weight-${p.id}" onchange="updateCardPrice(${p.id}, ${p.price250})" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
+                  ${WEIGHT_OPTIONS.map(w => `<option value="${w.multiplier}">${w.label} — ₹${p.price250 * w.multiplier}</option>`).join("")}
+                </select>
+              </div>
+
+              <!-- Cut Style Selector -->
+              <div class="mt-2.5">
+                <label class="block text-[11px] font-bold text-slate-500 mb-1">Cutting Style</label>
+                <select id="cut-${p.id}" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold bg-slate-50">
+                  ${CUT_STYLES.map(c => `<option value="${c}">${c}</option>`).join("")}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-4 pb-4">
+            <button ${!p.inStock ? 'disabled' : ''} onclick="addToCart(${p.id})"
+              class="w-full py-2.5 rounded-xl font-bold text-xs transition ${
+                p.inStock
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+                  : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+              }">
+              ${p.inStock ? '+ Add to Basket' : 'Unavailable'}
+            </button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function updateCardPrice(id, basePrice) {
+      const mult = Number(document.getElementById(`weight-${id}`).value);
+      document.getElementById(`priceTag-${id}`).textContent = `₹${basePrice * mult}`;
+    }
+
+    function addToCart(id) {
+      const product = products.find(p => p.id === id);
+      const weightSelect = document.getElementById(`weight-${id}`);
+      const mult = Number(weightSelect.value);
+      const weightLabel = WEIGHT_OPTIONS.find(w => w.multiplier === mult).label;
+      const cutStyle = document.getElementById(`cut-${id}`).value;
+      const price = product.price250 * mult;
+
+      const existing = cart.find(item => item.id === id && item.weight === weightLabel && item.cut === cutStyle);
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          id: product.id,
+          name: product.name,
+          weight: weightLabel,
+          cut: cutStyle,
+          unitPrice: price,
+          qty: 1
+        });
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+      const totalAmount = cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
+
+      const bar = document.getElementById("floatingCartBar");
+      bar.classList.toggle("hidden", totalItems === 0);
+      document.getElementById("cartBadgeCount").textContent = `${totalItems} Item${totalItems > 1 ? 's' : ''}`;
+      document.getElementById("cartBadgeTotal").textContent = `₹${totalAmount}`;
+      document.getElementById("checkoutTotalAmount").textContent = `₹${totalAmount}`;
+      document.getElementById("qrAmountLabel").textContent = `₹${totalAmount}`;
+
+      // Dynamic UPI QR Code with exact payable amount
+      const payee = settings.payeeName || settings.storeName;
+      const upiUri = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(payee)}&am=${totalAmount}&cu=INR`;
+      document.getElementById("upiQrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
+    }
+
+    function openCheckoutModal() {
+      renderCheckoutItems();
+      updateCartUI();
+      document.getElementById("checkoutModal").classList.remove("hidden");
+    }
+
+    function closeCheckoutModal() {
+      document.getElementById("checkoutModal").classList.add("hidden");
+    }
+
+    function renderCheckoutItems() {
+      const container = document.getElementById("checkoutItemsList");
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="py-2.5 flex items-center justify-between gap-2 text-xs">
+          <div>
+            <div class="font-bold text-slate-900">${item.name} (${item.weight})</div>
+            <div class="text-slate-500">Cut: ${item.cut} • ₹${item.unitPrice} each</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold">-</button>
+            <span class="font-bold">${item.qty}</span>
+            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold">+</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function changeQty(idx, delta) {
+      cart[idx].qty += delta;
+      if (cart[idx].qty <= 0) cart.splice(idx, 1);
+      updateCartUI();
+      if (cart.length === 0) {
+        closeCheckoutModal();
+      } else {
+        renderCheckoutItems();
+      }
+    }
+
+    function setPaymentMode(mode) {
+      paymentMode = mode;
+      const isUpi = mode === "UPI";
+      document.getElementById("upiQrPanel").classList.toggle("hidden", !isUpi);
+      document.getElementById("payModeUpiBtn").className = isUpi
+        ? "p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-left transition"
+        : "p-3 rounded-xl border border-slate-200 bg-white text-left transition";
+      document.getElementById("payModeCodBtn").className = !isUpi
+        ? "p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-left transition"
+        : "p-3 rounded-xl border border-slate-200 bg-white text-left transition";
+    }
+
+    function copyUpiId() {
+      navigator.clipboard.writeText(settings.upiId);
+      alert("UPI ID copied: " + settings.upiId);
+    }
+
+    async function submitOrder() {
+      const name = document.getElementById("custName").value.trim();
+      const phone = document.getElementById("custPhone").value.trim();
+      const address = document.getElementById("custAddress").value.trim();
+      const slot = document.getElementById("custSlot").value;
+
+      if (!name || !phone || !address) {
+        alert("Please fill in your Name, Mobile Number, and Delivery Address.");
+        return;
+      }
+
+      const btn = document.getElementById("placeOrderBtn");
+      btn.disabled = true;
+      btn.textContent = "Saving Order...";
+
+      const orderId = "VEG-" + Math.floor(100000 + Math.random() * 900000);
+      const total = cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
+      const itemsSummary = cart.map(i => `${i.name} (${i.weight}, ${i.cut}) x${i.qty} = ₹${i.unitPrice * i.qty}`).join(" | ");
+
+      // 1. Send to Google Sheets (Orders + Payments tabs)
+      if (settings.googleScriptUrl) {
+        try {
+          await fetch(settings.googleScriptUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              orderId,
+              customerName: name,
+              phone,
+              address,
+              slot,
+              itemsSummary,
+              total,
+              paymentMode
+            })
+          });
+        } catch (e) {
+          console.error("Google Sheet sync error:", e);
+        }
+      }
+
+      // 2. Format WhatsApp Order Message
+      const waLines = [
+        `*NEW ORDER — ${settings.storeName.toUpperCase()} (${orderId})*`,
+        `------------------------`,
+        `*Customer:* ${name}`,
+        `*Phone:* ${phone}`,
+        `*Address:* ${address}`,
+        `*Delivery Slot:* ${slot}`,
+        `------------------------`,
+        `*Items:*`,
+        ...cart.map(i => `• ${i.name} (${i.weight} - ${i.cut}) x${i.qty} = ₹${i.unitPrice * i.qty}`),
+        `------------------------`,
+        `*Total Amount:* ₹${total}`,
+        `*Payment Mode:* ${paymentMode === "UPI" ? "Paid via UPI QR" : "Cash on Delivery"}`
+      ];
+
+      const waUrl = `https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent(waLines.join("\n"))}`;
+
+      // Reset cart & open WhatsApp
+      cart = [];
+      updateCartUI();
+      closeCheckoutModal();
+      btn.disabled = false;
+      btn.textContent = "Place Order & Send on WhatsApp →";
+
+      window.open(waUrl, "_blank");
+    }
+
+    // ==================== ADMIN FUNCTIONS ====================
+    function saveAdminSettings() {
+      settings.storeName = document.getElementById("adminStoreName").value.trim() || DEFAULT_SETTINGS.storeName;
+      settings.whatsappNumber = document.getElementById("adminWhatsapp").value.trim() || DEFAULT_SETTINGS.whatsappNumber;
+      settings.upiId = document.getElementById("adminUpiId").value.trim() || DEFAULT_SETTINGS.upiId;
+      settings.googleScriptUrl = document.getElementById("adminScriptUrl").value.trim() || DEFAULT_SETTINGS.googleScriptUrl;
+      settings.imgbbApiKey = document.getElementById("adminImgbbKey").value.trim();
+
+      localStorage.setItem("vegman_settings", JSON.stringify(settings));
+      applySettingsToUI();
+      alert("Settings saved!");
+    }
+
+    async function handlePhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById("uploadStatus");
+
+      if (!settings.imgbbApiKey) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          document.getElementById("newVegImgUrl").value = reader.result;
+          statusEl.textContent = "Photo attached locally! Add an ImgBB API key to host images permanently.";
+        };
+        reader.readAsDataURL(file);
+        return;
+      }
+
+      statusEl.textContent = "Uploading photo...";
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${settings.imgbbApiKey}`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("newVegImgUrl").value = data.data.url;
+          statusEl.textContent = "Photo uploaded successfully!";
+        } else {
+          statusEl.textContent = "Upload failed. Check your ImgBB API key.";
+        }
+      } catch (err) {
+        statusEl.textContent = "Network error while uploading photo.";
+      }
+    }
+
+    function addNewVegetable() {
+      const name = document.getElementById("newVegName").value.trim();
+      const hindi = document.getElementById("newVegHindi").value.trim();
+      const category = document.getElementById("newVegCat").value;
+      const price250 = Number(document.getElementById("newVegPrice").value);
+      const image = document.getElementById("newVegImgUrl").value.trim();
+
+      if (!name || !price250) {
+        alert("Please enter Vegetable Name and 250g Price.");
+        return;
+      }
+
+      products.unshift({
+        id: Date.now(),
+        name,
+        hindi,
+        category,
+        price250,
+        inStock: true,
+        image
+      });
+
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+      renderCategories();
+      renderProducts();
+      renderAdminCatalog();
+
+      document.getElementById("newVegName").value = "";
+      document.getElementById("newVegHindi").value = "";
+      document.getElementById("newVegPrice").value = "";
+      document.getElementById("newVegImgUrl").value = "";
+      document.getElementById("uploadStatus").textContent = "";
+      alert(`${name} added to Vegman!`);
+    }
+
+    function renderAdminCatalog() {
+      const list = document.getElementById("adminCatalogList");
+      list.innerHTML = products.map((p, idx) => `
+        <div class="py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div>
+            <span class="font-bold text-slate-900">${p.name}</span>
+            <span class="text-slate-500">(${p.hindi || p.category})</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <label class="text-slate-500">250g ₹:</label>
+            <input type="number" value="${p.price250}" onchange="updateAdminPrice(${idx}, this.value)"
+              class="w-16 px-2 py-1 rounded-lg border border-slate-300 font-bold" />
+            <button onclick="toggleStock(${idx})"
+              class="px-2.5 py-1 rounded-lg font-bold ${p.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}">
+              ${p.inStock ? 'In Stock' : 'Out'}
+            </button>
+            <button onclick="deleteProduct(${idx})" class="text-rose-600 font-bold px-1.5">✕</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function updateAdminPrice(idx, val) {
+      products[idx].price250 = Number(val) || 10;
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+      renderProducts();
+    }
+
+    function toggleStock(idx) {
+      products[idx].inStock = !products[idx].inStock;
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+      renderProducts();
+      renderAdminCatalog();
+    }
+
+    function deleteProduct(idx) {
+      products.splice(idx, 1);
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+      renderCategories();
+      renderProducts();
+      renderAdminCatalog();
+    }
+
+    function resetCatalog() {
+      products = [...DEFAULT_PRODUCTS];
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+      renderCategories();
+      renderProducts();
+      renderAdminCatalog();
+    }
+
+    init();
+  </script>
+</body>
+</html>
