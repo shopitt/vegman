@@ -105,7 +105,7 @@
 
         <!-- Shown ONLY when Admin is unlocked -->
         <div id="adminExitBar" class="hidden flex items-center gap-1.5 shrink-0">
-          <span id="syncIndicator" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">Local Admin</span>
+          <span id="syncIndicator" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-blue-50 text-blue-700">Manual Sync</span>
           <button onclick="exitAdminMode()" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-900 text-white smooth-btn">
             Exit
           </button>
@@ -129,16 +129,17 @@
   <!-- ==================== 2. HIDDEN ADMIN PANEL VIEW ==================== -->
   <section id="adminView" class="hidden max-w-5xl mx-auto px-4 pt-4 animate-fade-in">
 
-    <!-- Admin Control Banner -->
+    <!-- Admin Control Banner with Manual "Update Catalog" Button -->
     <div class="bg-slate-900 text-white rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
       <div>
         <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin Panel</h2>
-        <p class="text-xs text-slate-300">Changes save directly to Admin catalog; Orders & Payments sync live to Google Sheet.</p>
+        <p id="adminSyncHint" class="text-xs text-slate-300">Edit products/prices freely, then tap <strong>Update Catalog</strong> to push to all customers.</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <span class="px-3 py-1.5 rounded-xl bg-white/15 text-[11px] font-bold text-emerald-300">
-          Orders & Payments Auto-Sync: ON
-        </span>
+        <button id="updateCatalogBtn" type="button" onclick="manualUpdateCatalog()"
+          class="px-4 py-2 rounded-xl instamart-blue hover:opacity-95 text-white text-xs font-extrabold shadow-md smooth-btn">
+          Update Catalog
+        </button>
       </div>
     </div>
 
@@ -236,7 +237,7 @@
       <!-- Delivery Slots ON/OFF Control (All on Same Line) -->
       <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <h2 class="font-extrabold text-base text-slate-900 mb-1">Delivery Slots (ON / OFF)</h2>
-        <p class="text-xs text-slate-500 mb-3">Tap any slot pill to switch ON or OFF. Turning OFF hides it from checkout.</p>
+        <p class="text-xs text-slate-500 mb-3">Tap any slot pill to toggle ON or OFF. Turn OFF hides it from checkout.</p>
         <div id="adminSlotToggles" class="space-y-2.5 overflow-x-auto no-scrollbar">
           <!-- Populated by JS -->
         </div>
@@ -248,7 +249,7 @@
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div>
           <h2 class="font-extrabold text-base text-slate-900">Product List</h2>
-          <p class="text-[11px] text-slate-500">Click <strong>In Stock / Out of Stock</strong> to switch stock status on click, or <strong>ON / OFF</strong> to show/hide the product.</p>
+          <p class="text-[11px] text-slate-500">Click <strong>In Stock / Out of Stock</strong> to switch stock status on click, then tap <strong>Update Catalog</strong> above to publish.</p>
         </div>
         <span class="text-xs text-slate-500" id="catalogCountLabel">0 items</span>
       </div>
@@ -574,6 +575,7 @@
     let logoTapTimer = null;
     let lastLookupPhone = "";
     let customerGpsCoords = "";
+    let autoSyncTimer = null;
 
     function extractCoordsOnly(raw) {
       const m = String(raw || "").match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
@@ -598,6 +600,91 @@
         }
       }
       return "Morning (6:30 – 7:30 AM)";
+    }
+
+    function markDraftUnsaved() {
+      const ind = document.getElementById("syncIndicator");
+      if (ind) {
+        ind.textContent = "Unsaved Changes";
+        ind.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-amber-50 text-amber-700";
+      }
+    }
+
+    // ==================== MANUAL CATALOG PUSH (ADMIN) & CUSTOMER PULL ====================
+    async function manualUpdateCatalog() {
+      const btn = document.getElementById("updateCatalogBtn");
+      const ind = document.getElementById("syncIndicator");
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+
+      if (!settings.googleScriptUrl) {
+        alert("Google Script URL missing in Store Settings.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Updating...";
+      if (ind) {
+        ind.textContent = "Pushing...";
+        ind.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-blue-50 text-blue-700";
+      }
+
+      try {
+        await fetch(settings.googleScriptUrl, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "sync_catalog",
+            catalog: products
+          })
+        });
+
+        if (ind) {
+          ind.textContent = "Catalog Updated ✓";
+          ind.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700";
+        }
+        alert("Catalog updated! All customers will see the latest items & stock status.");
+      } catch (e) {
+        console.error("Catalog sync error:", e);
+        if (ind) {
+          ind.textContent = "Sync Failed";
+          ind.className = "text-[10px] font-bold px-2 py-1 rounded-lg bg-rose-50 text-rose-700";
+        }
+        alert("Could not update catalog. Check your internet or Apps Script URL.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Update Catalog";
+      }
+    }
+
+    async function pullCatalogForCustomers() {
+      const isAdminOpen = !document.getElementById("adminView").classList.contains("hidden");
+      if (isAdminOpen || !settings.googleScriptUrl) return;
+
+      try {
+        const res = await fetch(settings.googleScriptUrl + "?t=" + Date.now());
+        const data = await res.json();
+        if (data.status === "success" && Array.isArray(data.catalog) && data.catalog.length > 0) {
+          const incoming = data.catalog.map(item => ({
+            ...item,
+            enabled: item.enabled !== undefined ? Boolean(item.enabled) : true,
+            outOfStock: Boolean(item.outOfStock)
+          }));
+
+          if (JSON.stringify(incoming) !== JSON.stringify(products)) {
+            products = incoming;
+            localStorage.setItem("vegman_products", JSON.stringify(products));
+            const activeIds = new Set(products.filter(p => p.enabled !== false && !p.outOfStock).map(p => String(p.id)));
+            cart = cart.filter(c => activeIds.has(String(c.id)));
+            updateCartUI();
+            renderCategories();
+            renderProducts();
+            if (activePopupProductId) renderVariantPopup();
+          }
+        }
+      } catch (err) {
+        console.error("Customer pull error:", err);
+      }
     }
 
     // ==================== SECRET ADMIN ACCESS ====================
@@ -655,7 +742,7 @@
     }
 
     // ==================== INITIALIZATION ====================
-    function init() {
+    async function init() {
       selectedDeliverySlot = getFirstEnabledSlot();
       applySettingsToUI();
       loadSavedCustomerLocal();
@@ -667,7 +754,20 @@
       renderAdminCatalog();
 
       const params = new URLSearchParams(window.location.search);
-      if (params.get("admin") === "1") {
+      const wantsAdmin = params.get("admin") === "1";
+
+      if (!wantsAdmin) {
+        await pullCatalogForCustomers();
+        clearInterval(autoSyncTimer);
+        autoSyncTimer = setInterval(() => {
+          const isAdminOpen = !document.getElementById("adminView").classList.contains("hidden");
+          if (!document.hidden && !isAdminOpen) {
+            pullCatalogForCustomers();
+          }
+        }, 30000);
+      }
+
+      if (wantsAdmin) {
         if (sessionStorage.getItem("vegman_admin_unlocked") === "1") enterAdminMode();
         else openPinModal();
       }
@@ -1275,7 +1375,7 @@
       window.open(waUrl, "_blank");
     }
 
-    // ==================== ADMIN FUNCTIONS ====================
+    // ==================== ADMIN FUNCTIONS (LOCAL DRAFT UNTIL "Update Catalog" CLICKED) ====================
     function renderMainCategoryManager() {
       const chipsEl = document.getElementById("mainCategoryChipsList");
       chipsEl.innerHTML = mainCategories.map((cat, idx) => `
@@ -1489,6 +1589,7 @@
       });
 
       localStorage.setItem("vegman_products", JSON.stringify(products));
+      markDraftUnsaved();
       renderCategories();
       renderProducts();
       renderAdminCatalog();
@@ -1545,6 +1646,7 @@
         updateCartUI();
       }
       localStorage.setItem("vegman_products", JSON.stringify(products));
+      markDraftUnsaved();
       renderProducts();
       renderAdminCatalog();
     }
@@ -1552,12 +1654,14 @@
     function updateAdminVariants(idx, val) {
       products[idx].variants = val.trim() || "1 Pack:20";
       localStorage.setItem("vegman_products", JSON.stringify(products));
+      markDraftUnsaved();
       renderProducts();
     }
 
     function toggleProductOnOff(idx) {
       products[idx].enabled = !(products[idx].enabled !== false);
       localStorage.setItem("vegman_products", JSON.stringify(products));
+      markDraftUnsaved();
       renderCategories();
       renderProducts();
       renderAdminCatalog();
@@ -1570,6 +1674,7 @@
       cart = cart.filter(item => String(item.id) !== String(removedId));
       updateCartUI();
       localStorage.setItem("vegman_products", JSON.stringify(products));
+      markDraftUnsaved();
       renderCategories();
       renderProducts();
       renderAdminCatalog();
