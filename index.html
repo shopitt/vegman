@@ -133,7 +133,7 @@
     <div class="bg-slate-900 text-white rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
       <div>
         <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin Panel</h2>
-        <p id="adminSyncHint" class="text-xs text-slate-300">Edit categories, category photos, products & stock freely, then tap <strong>Update Catalog</strong> to push to all customers.</p>
+        <p id="adminSyncHint" class="text-xs text-slate-300">Edit categories, prices/MRP, or stock freely, then tap <strong>Update Catalog</strong> to push to all customers.</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button id="updateCatalogBtn" type="button" onclick="manualUpdateCatalog()"
@@ -204,19 +204,21 @@
 
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
             <div class="flex items-center justify-between mb-2">
-              <label class="text-xs font-bold text-slate-700">Pack Sizes & Prices *</label>
+              <label class="text-xs font-bold text-slate-700">Pack Sizes, Offer Price & MRP *</label>
               <button type="button" onclick="addVariantRow()" class="text-[11px] font-bold instamart-blue-text bg-blue-100 px-2 py-0.5 rounded-lg smooth-btn">
                 + Add Size
               </button>
             </div>
             <div id="variantBuilderRows" class="space-y-2">
-              <div class="flex gap-2">
-                <input type="text" placeholder="Size (e.g. 250g)" class="var-label w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
-                <input type="number" placeholder="Price ₹ (e.g. 22)" class="var-price w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+              <div class="flex gap-1.5">
+                <input type="text" placeholder="Size (250g)" class="var-label w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+                <input type="number" placeholder="Price ₹" class="var-price w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+                <input type="number" placeholder="MRP ₹ (opt)" class="var-mrp w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
               </div>
-              <div class="flex gap-2">
-                <input type="text" placeholder="Size (e.g. 500g)" class="var-label w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
-                <input type="number" placeholder="Price ₹ (e.g. 42)" class="var-price w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+              <div class="flex gap-1.5">
+                <input type="text" placeholder="Size (500g)" class="var-label w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+                <input type="number" placeholder="Price ₹" class="var-price w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+                <input type="number" placeholder="MRP ₹ (opt)" class="var-mrp w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
               </div>
             </div>
           </div>
@@ -244,12 +246,12 @@
       </div>
     </div>
 
-    <!-- Manage Existing Catalog (In Stock / Out of Stock Toggle) -->
+    <!-- Manage Existing Catalog (Pricing Edit + In Stock / Out of Stock Toggle) -->
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div>
           <h2 class="font-extrabold text-base text-slate-900">Product List</h2>
-          <p class="text-[11px] text-slate-500">Click <strong>In Stock / Out of Stock</strong> to switch stock status on click, then tap <strong>Update Catalog</strong> above to publish.</p>
+          <p class="text-[11px] text-slate-500">Format: <code class="bg-slate-100 px-1 rounded">Size:Price:MRP</code> (MRP optional). Edit directly or click <strong>Edit Price</strong>, then tap <strong>Update Catalog</strong>.</p>
         </div>
         <span class="text-xs text-slate-500" id="catalogCountLabel">0 items</span>
       </div>
@@ -303,6 +305,31 @@
       </div>
     </details>
   </section>
+
+  <!-- ==================== ADMIN EDIT PRICING MODAL ==================== -->
+  <div id="editPricingModal" onclick="if(event.target===this) closeEditPricingModal()"
+    class="hidden fixed inset-0 z-50 bg-slate-900/65 backdrop-blur-[1px] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-backdrop">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl animate-slide-up">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 id="epProductName" class="font-extrabold text-base text-slate-900">Edit Pricing</h3>
+          <p class="text-[11px] text-slate-500">Set Selling Price and optional MRP (% OFF auto-calculated)</p>
+        </div>
+        <button type="button" onclick="closeEditPricingModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 smooth-btn">✕</button>
+      </div>
+
+      <div id="epRowsContainer" class="space-y-2.5 my-4 max-h-64 overflow-y-auto">
+        <!-- Populated by JS -->
+      </div>
+
+      <div class="flex gap-2">
+        <button type="button" onclick="closeEditPricingModal()" class="w-1/3 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs smooth-btn">Cancel</button>
+        <button type="button" onclick="saveEditedPricingModal()" class="w-2/3 py-2.5 rounded-xl instamart-blue text-white font-extrabold text-xs smooth-btn">
+          Apply Price Changes
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== INSTAMART FULL-PHOTO DETAIL POPUP MODAL ==================== -->
   <div id="variantPopupModal" onclick="if(event.target===this) closeVariantPopup()"
@@ -395,8 +422,8 @@
         <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200 smooth-btn">✕</button>
       </div>
 
-      <!-- Cart Items -->
-      <div id="checkoutItemsList" class="divide-y divide-slate-100 my-2.5 max-h-40 overflow-y-auto"></div>
+      <!-- Cart Items With Photos & Discount -->
+      <div id="checkoutItemsList" class="divide-y divide-slate-100 my-2.5 max-h-52 overflow-y-auto"></div>
 
       <!-- Customer Details -->
       <div class="space-y-2.5 text-sm mb-4">
@@ -514,7 +541,7 @@
         ]
       },
       {
-        group: "Evening / Night",
+        group: "Evening",
         slots: [
           { label: "7:00 – 8:00 PM", enabled: true },
           { label: "8:00 – 9:00 PM", enabled: true },
@@ -542,22 +569,32 @@
     };
 
     const DEFAULT_PRODUCTS = [
-      { id: "1", name: "Lady Finger (Bhindi)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:22, 500g:42", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=600&q=85" },
-      { id: "2", name: "Red Onion (Pyaz)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:18, 500g:35", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=600&q=85" },
-      { id: "3", name: "Tomato (Tamatar)", hindi: "Farm Fresh", category: "Veggies", variants: "250g:15, 500g:28", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=85" },
-      { id: "4", name: "Potato (Aloo)", hindi: "Daily Essential", category: "Veggies", variants: "500g:20, 1kg:38", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=85" },
-      { id: "5", name: "Fresh Cow Milk", hindi: "Morning Pouch", category: "Milk & Dairy", variants: "500ml:30, 1 Litre:58", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=600&q=85" },
-      { id: "6", name: "Farm Fresh Eggs", hindi: "White Eggs", category: "Breakfast Essentials", variants: "6 Pcs:45, 12 Pcs:85", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=85" },
-      { id: "7", name: "Fresh Carrots (Gajar)", hindi: "Crunchy & Sweet", category: "Veggies", variants: "250g:18, 500g:34", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=600&q=85" },
-      { id: "8", name: "Red Apples (Seb)", hindi: "Crisp & Juicy", category: "Fruit", variants: "500g:65, 1kg:125", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=85" }
+      { id: "1", name: "Lady Finger (Bhindi)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:22:30, 500g:42:58", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=600&q=85" },
+      { id: "2", name: "Red Onion (Pyaz)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:18:24, 500g:35:46", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=600&q=85" },
+      { id: "3", name: "Tomato (Tamatar)", hindi: "Farm Fresh", category: "Veggies", variants: "250g:15:20, 500g:23:33", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=85" },
+      { id: "4", name: "Potato (Aloo)", hindi: "Daily Essential", category: "Veggies", variants: "500g:20:26, 1kg:34:45", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=85" },
+      { id: "5", name: "Fresh Cow Milk", hindi: "Morning Pouch", category: "Milk & Dairy", variants: "500ml:30:32, 1 Litre:58:62", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=600&q=85" },
+      { id: "6", name: "Farm Fresh Eggs", hindi: "White Eggs", category: "Breakfast Essentials", variants: "6 Pcs:45:55, 12 Pcs:85:105", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=85" },
+      { id: "7", name: "Fresh Carrots (Gajar)", hindi: "Crunchy & Sweet", category: "Veggies", variants: "250g:18:24, 500g:34:45", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=600&q=85" },
+      { id: "8", name: "Red Apples (Seb)", hindi: "Crisp & Juicy", category: "Fruit", variants: "500g:65:80, 1kg:125:155", enabled: true, outOfStock: false, image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=85" }
     ];
+
+    function normalizeSlotGroups(rawSlots) {
+      const base = Array.isArray(rawSlots) && rawSlots.length > 0 ? rawSlots : JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+      return base.map(grp => ({
+        group: grp.group === "Evening / Night" ? "Evening" : grp.group,
+        slots: Array.isArray(grp.slots) ? grp.slots.map(s => ({ ...s })) : []
+      }));
+    }
 
     let savedSettings = JSON.parse(localStorage.getItem("vegman_settings")) || {};
     let settings = { ...DEFAULT_SETTINGS, ...savedSettings };
     if (!settings.googleScriptUrl) settings.googleScriptUrl = DEFAULT_SETTINGS.googleScriptUrl;
     if (!settings.imgbbApiKey) settings.imgbbApiKey = DEFAULT_SETTINGS.imgbbApiKey;
 
-    let slotGroups = JSON.parse(localStorage.getItem("vegman_slots")) || JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+    let slotGroups = normalizeSlotGroups(JSON.parse(localStorage.getItem("vegman_slots")));
+    localStorage.setItem("vegman_slots", JSON.stringify(slotGroups));
+
     let mainCategories = JSON.parse(localStorage.getItem("vegman_main_categories")) || [...DEFAULT_MAIN_CATEGORIES];
     let categoryImages = { ...DEFAULT_CATEGORY_IMAGES, ...(JSON.parse(localStorage.getItem("vegman_cat_images")) || {}) };
     let products = (JSON.parse(localStorage.getItem("vegman_products")) || [...DEFAULT_PRODUCTS]).map(p => ({
@@ -567,6 +604,7 @@
 
     let selectedVariantIdx = {};
     let activePopupProductId = null;
+    let editingPricingProdIdx = null;
     let cart = [];
     let selectedCategory = mainCategories[0] || "All Items";
     let selectedDeliverySlot = "";
@@ -582,15 +620,27 @@
       return m ? `${m[1]}, ${m[2]}` : "";
     }
 
+    // Supports "Size:Price" or "Size:Price:MRP"
     function parseVariants(str) {
-      if (!str) return [{ label: "1 Pack", price: 20 }];
+      if (!str) return [{ label: "1 Pack", price: 20, mrp: 0, discountPct: 0 }];
       return String(str).split(",").map(part => {
-        const [lbl, prc] = part.split(":");
-        return {
-          label: (lbl || "Standard").trim(),
-          price: Number((prc || "20").trim()) || 20
-        };
+        const parts = part.split(":");
+        const label = (parts[0] || "Standard").trim();
+        const price = Number((parts[1] || "20").trim()) || 20;
+        const rawMrp = Number((parts[2] || "0").trim()) || 0;
+        const mrp = rawMrp > price ? rawMrp : 0;
+        const discountPct = mrp > price ? Math.round(((mrp - price) / mrp) * 100) : 0;
+        return { label, price, mrp, discountPct };
       }).filter(v => v.label);
+    }
+
+    function formatVariantsString(vars) {
+      return vars.map(v => {
+        const lbl = String(v.label || "1 Pack").trim();
+        const prc = Number(v.price) || 20;
+        const mrp = Number(v.mrp) || 0;
+        return mrp > prc ? `${lbl}:${prc}:${mrp}` : `${lbl}:${prc}`;
+      }).join(", ");
     }
 
     function getFirstEnabledSlot() {
@@ -997,8 +1047,11 @@
         cart.push({
           id: product.id,
           name: product.name,
+          image: product.image || "",
           weight: chosenVar.label,
           unitPrice: chosenVar.price,
+          unitMrp: chosenVar.mrp,
+          discountPct: chosenVar.discountPct,
           qty: 1
         });
       }
@@ -1028,10 +1081,14 @@
 
         return `
           <div class="rounded-2xl border transition-all duration-200 ${qtyInCart > 0 ? 'instamart-blue-border bg-blue-50/30' : 'border-slate-200 bg-white'} p-3 flex flex-col justify-between shadow-2xs">
-            <div class="flex items-start justify-between gap-1 mb-2">
+            <div class="flex items-start justify-between gap-1 mb-1.5">
               <div>
                 <div class="font-extrabold text-xs text-slate-900">${v.label}</div>
-                <div class="font-extrabold text-sm text-slate-900 mt-0.5">₹${v.price}</div>
+                <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                  <span class="font-extrabold text-sm text-slate-900">₹${v.price}</span>
+                  ${v.mrp > v.price ? `<span class="text-[11px] text-slate-400 line-through">₹${v.mrp}</span>` : ''}
+                </div>
+                ${v.discountPct > 0 ? `<div class="text-[10px] font-extrabold text-emerald-700 mt-0.5">${v.discountPct}% OFF</div>` : ''}
               </div>
               ${qtyInCart === 0 ? `
                 <button type="button" onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)"
@@ -1127,10 +1184,15 @@
             `).join("")}
           </div>
 
-          <div class="flex items-center gap-2 flex-wrap mb-0.5">
+          <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
             <span class="font-extrabold text-sm text-slate-900">₹${activeVar.price}</span>
+            ${activeVar.mrp > activeVar.price ? `<span class="text-[11px] text-slate-400 line-through font-medium">₹${activeVar.mrp}</span>` : ''}
             ${isOos ? `<span class="text-slate-500 font-semibold text-[11px]">Out of Stock</span>` : ''}
           </div>
+
+          ${!isOos && activeVar.discountPct > 0 ? `
+            <div class="text-[10px] font-extrabold text-emerald-700 mb-0.5">${activeVar.discountPct}% OFF</div>
+          ` : ''}
 
           <h3 onclick="${!isOos ? `openVariantPopup('${p.id}')` : ''}"
             class="font-semibold text-xs text-slate-800 leading-snug line-clamp-2 ${!isOos ? 'cursor-pointer' : ''}">
@@ -1153,8 +1215,11 @@
         cart.push({
           id: product.id,
           name: product.name,
+          image: product.image || "",
           weight: chosenVar.label,
           unitPrice: chosenVar.price,
+          unitMrp: chosenVar.mrp,
+          discountPct: chosenVar.discountPct,
           qty: 1
         });
       }
@@ -1269,19 +1334,37 @@
 
     function renderCheckoutItems() {
       const container = document.getElementById("checkoutItemsList");
-      container.innerHTML = cart.map((item, idx) => `
-        <div class="py-2 flex items-center justify-between gap-2 text-xs">
-          <div>
-            <div class="font-bold text-slate-900">${item.name} (${item.weight})</div>
-            <div class="text-slate-500">₹${item.unitPrice} each</div>
+      container.innerHTML = cart.map((item, idx) => {
+        const prod = products.find(p => String(p.id) === String(item.id));
+        const imgSrc = item.image || (prod && prod.image) || "https://via.placeholder.com/120?text=Vegman";
+        const linePrice = item.unitPrice * item.qty;
+        const lineMrp = item.unitMrp > item.unitPrice ? item.unitMrp * item.qty : 0;
+
+        return `
+        <div class="py-2.5 flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-3 min-w-0">
+            <img src="${imgSrc}" alt="${item.name}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 bg-slate-50 shrink-0" />
+            <div class="min-w-0">
+              <div class="font-bold text-slate-900 truncate">${item.name}</div>
+              <div class="text-[11px] text-slate-500">${item.weight}</div>
+              ${item.discountPct > 0 ? `<div class="text-[10px] font-bold text-emerald-700">${item.discountPct}% OFF</div>` : ''}
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold smooth-btn">-</button>
-            <span class="font-bold">${item.qty}</span>
-            <button onclick="changeQty(${idx}, 1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold smooth-btn">+</button>
+
+          <div class="flex items-center gap-2.5 shrink-0">
+            <div class="flex items-center gap-1.5 border border-slate-200 rounded-xl px-1.5 py-1 bg-white">
+              <button onclick="changeQty(${idx}, -1)" class="w-5 h-5 rounded-md bg-slate-100 font-bold smooth-btn">−</button>
+              <span class="font-extrabold px-1">${item.qty}</span>
+              <button onclick="changeQty(${idx}, 1)" class="w-5 h-5 rounded-md bg-slate-100 font-bold smooth-btn">+</button>
+            </div>
+            <div class="text-right min-w-[44px]">
+              ${lineMrp > linePrice ? `<div class="text-[10px] text-slate-400 line-through">₹${lineMrp}</div>` : ''}
+              <div class="font-extrabold text-slate-900 text-xs">₹${linePrice}</div>
+            </div>
           </div>
         </div>
-      `).join("");
+      `;
+      }).join("");
     }
 
     function changeQty(idx, delta) {
@@ -1527,10 +1610,11 @@
     function addVariantRow() {
       const container = document.getElementById("variantBuilderRows");
       const row = document.createElement("div");
-      row.className = "flex gap-2 animate-fade-in";
+      row.className = "flex gap-1.5 animate-fade-in";
       row.innerHTML = `
-        <input type="text" placeholder="Size (e.g. 1kg)" class="var-label w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
-        <input type="number" placeholder="Price ₹" class="var-price w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+        <input type="text" placeholder="Size (1kg)" class="var-label w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+        <input type="number" placeholder="Price ₹" class="var-price w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+        <input type="number" placeholder="MRP ₹ (opt)" class="var-mrp w-1/3 px-2 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
       `;
       container.appendChild(row);
     }
@@ -1587,12 +1671,16 @@
 
       const labels = document.querySelectorAll("#variantBuilderRows .var-label");
       const prices = document.querySelectorAll("#variantBuilderRows .var-price");
+      const mrps = document.querySelectorAll("#variantBuilderRows .var-mrp");
       const variantPairs = [];
 
       labels.forEach((lblInput, i) => {
         const l = lblInput.value.trim();
         const p = Number(prices[i].value);
-        if (l && p > 0) variantPairs.push(`${l}:${p}`);
+        const m = Number(mrps[i] ? mrps[i].value : 0);
+        if (l && p > 0) {
+          variantPairs.push(m > p ? `${l}:${p}:${m}` : `${l}:${p}`);
+        }
       });
 
       if (!name || variantPairs.length === 0) {
@@ -1623,6 +1711,65 @@
       document.getElementById("uploadStatus").textContent = "";
       labels.forEach(i => i.value = "");
       prices.forEach(i => i.value = "");
+      mrps.forEach(i => i.value = "");
+    }
+
+    function openEditPricingModal(idx) {
+      const prod = products[idx];
+      if (!prod) return;
+      editingPricingProdIdx = idx;
+      const vars = parseVariants(prod.variants);
+      document.getElementById("epProductName").textContent = `${prod.name} — Edit Pricing`;
+      document.getElementById("epRowsContainer").innerHTML = vars.map((v, vIdx) => `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 grid grid-cols-3 gap-2 text-xs" data-vidx="${vIdx}">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Size</label>
+            <input type="text" value="${v.label}" class="ep-label w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white font-bold" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">Price (₹)</label>
+            <input type="number" value="${v.price}" class="ep-price w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white font-bold" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 mb-1">MRP (₹)</label>
+            <input type="number" value="${v.mrp || ''}" placeholder="Optional" class="ep-mrp w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white font-bold" />
+          </div>
+        </div>
+      `).join("");
+
+      document.getElementById("editPricingModal").classList.remove("hidden");
+    }
+
+    function closeEditPricingModal() {
+      editingPricingProdIdx = null;
+      document.getElementById("editPricingModal").classList.add("hidden");
+    }
+
+    function saveEditedPricingModal() {
+      if (editingPricingProdIdx === null || !products[editingPricingProdIdx]) return;
+      const rowEls = document.querySelectorAll("#epRowsContainer > div");
+      const updatedVars = [];
+
+      rowEls.forEach(r => {
+        const label = r.querySelector(".ep-label").value.trim();
+        const price = Number(r.querySelector(".ep-price").value);
+        const mrp = Number(r.querySelector(".ep-mrp").value) || 0;
+        if (label && price > 0) {
+          updatedVars.push({ label, price, mrp: mrp > price ? mrp : 0 });
+        }
+      });
+
+      if (updatedVars.length === 0) {
+        alert("Enter at least one valid size and price.");
+        return;
+      }
+
+      products[editingPricingProdIdx].variants = formatVariantsString(updatedVars);
+      localStorage.setItem("vegman_products", JSON.stringify(products));
+      markDraftUnsaved();
+      renderProducts();
+      renderAdminCatalog();
+      closeEditPricingModal();
     }
 
     function renderAdminCatalog() {
@@ -1633,14 +1780,22 @@
         const isOos = Boolean(p.outOfStock);
         return `
         <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-          <div>
-            <span class="font-bold text-slate-900 text-sm">${p.name}</span>
-            <span class="text-slate-500">(${p.category})</span>
+          <div class="flex items-center gap-2.5 min-w-0">
+            <img src="${p.image || 'https://via.placeholder.com/80?text=Vegman'}" alt="${p.name}"
+              class="w-9 h-9 rounded-lg object-cover border border-slate-200 bg-slate-50 shrink-0" />
+            <div class="truncate">
+              <span class="font-bold text-slate-900 text-sm">${p.name}</span>
+              <span class="text-slate-500">(${p.category})</span>
+            </div>
           </div>
           <div class="flex items-center flex-wrap justify-end gap-2">
             <input type="text" value="${p.variants}" onchange="updateAdminVariants(${idx}, this.value)"
-              title="Format: Size:Price, Size:Price"
-              class="w-36 sm:w-44 px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold" />
+              title="Format: Size:Price:MRP, Size:Price:MRP"
+              class="w-40 sm:w-48 px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold" />
+            <button type="button" onclick="openEditPricingModal(${idx})"
+              class="px-2.5 py-1.5 rounded-xl font-extrabold text-[11px] border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 smooth-btn">
+              Edit Price
+            </button>
             <button type="button" onclick="toggleStockStatus(${idx})"
               class="px-3 py-1.5 rounded-xl font-extrabold text-[11px] border smooth-btn ${
                 isOos
