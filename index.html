@@ -57,7 +57,7 @@
 
         <!-- Shown ONLY when Admin is unlocked -->
         <div id="adminExitBar" class="hidden flex items-center gap-1.5 shrink-0">
-          <span id="syncIndicator" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">Synced</span>
+          <span id="syncIndicator" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">Local Admin</span>
           <button onclick="exitAdminMode()" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-900 text-white">
             Exit
           </button>
@@ -81,19 +81,16 @@
   <!-- ==================== 2. HIDDEN ADMIN PANEL VIEW ==================== -->
   <section id="adminView" class="hidden max-w-5xl mx-auto px-4 pt-4">
 
-    <!-- Two-Way Sync Control Bar -->
+    <!-- Admin Control Banner -->
     <div class="bg-slate-900 text-white rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
       <div>
-        <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin & Google Sheet Sync</h2>
-        <p class="text-xs text-slate-300">Manage main categories, products, delivery slots & live Google Sheet sync.</p>
+        <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin Panel</h2>
+        <p class="text-xs text-slate-300">Changes save directly to Admin catalog; Orders & Payments sync live to Google Sheet.</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <button onclick="pullFromGoogleSheet(true)" class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold transition">
-          ↓ Pull from Sheet
-        </button>
-        <button onclick="pushToGoogleSheet(true)" class="px-3.5 py-2 rounded-xl instamart-blue text-white text-xs font-bold transition">
-          ↑ Push to Sheet
-        </button>
+        <span class="px-3 py-1.5 rounded-xl bg-white/15 text-[11px] font-bold text-emerald-300">
+          Orders & Payments Auto-Sync: ON
+        </span>
       </div>
     </div>
 
@@ -192,7 +189,7 @@
           </div>
 
           <button onclick="addNewVegetable()" class="w-full py-2.5 instamart-blue hover:opacity-95 text-white font-bold rounded-xl transition">
-            + Add Product & Sync to Sheet
+            + Add Product
           </button>
         </div>
       </div>
@@ -589,7 +586,6 @@
       renderAdminSlotToggles();
       renderMainCategoryManager();
       renderAdminCatalog();
-      pullFromGoogleSheet(false);
     }
 
     function exitAdminMode() {
@@ -597,67 +593,15 @@
       document.getElementById("adminView").classList.add("hidden");
       document.getElementById("adminExitBar").classList.add("hidden");
       document.getElementById("storeView").classList.remove("hidden");
+      renderCategories();
+      renderProducts();
       if (window.history.replaceState) {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }
 
-    // ==================== TWO-WAY GOOGLE SHEET SYNC ====================
-    async function pullFromGoogleSheet(showAlert = false) {
-      if (!settings.googleScriptUrl) return;
-      setSyncStatus("Syncing...");
-      try {
-        const res = await fetch(settings.googleScriptUrl + "?t=" + Date.now());
-        const data = await res.json();
-        if (data.status === "success" && Array.isArray(data.catalog)) {
-          if (data.catalog.length > 0) {
-            products = data.catalog.map(item => ({
-              ...item,
-              enabled: item.enabled !== undefined ? Boolean(item.enabled) : (item.inStock !== false)
-            }));
-            localStorage.setItem("vegman_products", JSON.stringify(products));
-            renderCategories();
-            renderProducts();
-            renderAdminCatalog();
-            setSyncStatus("Synced ✓");
-            if (showAlert) alert("Catalog updated from Google Sheet!");
-          } else {
-            await pushToGoogleSheet(false);
-          }
-        }
-      } catch (err) {
-        console.error("Pull error:", err);
-        setSyncStatus("Offline");
-      }
-    }
-
-    async function pushToGoogleSheet(showAlert = false) {
-      if (!settings.googleScriptUrl) return;
-      setSyncStatus("Saving...");
-      try {
-        await fetch(settings.googleScriptUrl, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "sync_catalog",
-            catalog: products.map(p => ({ ...p, inStock: p.enabled !== false }))
-          })
-        });
-        setSyncStatus("Synced ✓");
-        if (showAlert) alert("Pushed to Google Sheet!");
-      } catch (err) {
-        setSyncStatus("Sync Failed");
-      }
-    }
-
-    function setSyncStatus(text) {
-      const el = document.getElementById("syncIndicator");
-      if (el) el.textContent = text;
-    }
-
-    // ==================== INITIALIZATION ====================
-    async function init() {
+    // ==================== INITIALIZATION (NO CATALOG AUTO-PULL) ====================
+    function init() {
       selectedDeliverySlot = getFirstEnabledSlot();
       applySettingsToUI();
       loadSavedCustomerLocal();
@@ -673,8 +617,6 @@
         if (sessionStorage.getItem("vegman_admin_unlocked") === "1") enterAdminMode();
         else openPinModal();
       }
-
-      await pullFromGoogleSheet(false);
     }
 
     function applySettingsToUI() {
@@ -769,7 +711,7 @@
             const j = await r.json();
             const addr = j.display_name || `Lat ${lat}, Lng ${lng}`;
             document.getElementById("custAddress").value = addr;
-            statusEl.textContent = `GPS captured (${customerGpsCoords}) ✓`;
+            statusEl.textContent = `GPS address filled ✓`;
           } catch (e) {
             document.getElementById("custAddress").value = `Lat ${lat}, Lng ${lng}`;
             statusEl.textContent = `GPS captured (${customerGpsCoords}) ✓`;
@@ -1442,7 +1384,7 @@
       }
     }
 
-    async function addNewVegetable() {
+    function addNewVegetable() {
       const name = document.getElementById("newVegName").value.trim();
       const hindi = document.getElementById("newVegHindi").value.trim();
       const category = document.getElementById("newVegCatSelect").value || "Veggies";
@@ -1484,8 +1426,6 @@
       document.getElementById("uploadStatus").textContent = "";
       labels.forEach(i => i.value = "");
       prices.forEach(i => i.value = "");
-
-      await pushToGoogleSheet(false);
     }
 
     function renderAdminCatalog() {
@@ -1515,30 +1455,27 @@
       `}).join("");
     }
 
-    async function updateAdminVariants(idx, val) {
+    function updateAdminVariants(idx, val) {
       products[idx].variants = val.trim() || "1 Pack:20";
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderProducts();
-      await pushToGoogleSheet(false);
     }
 
-    async function toggleProductOnOff(idx) {
+    function toggleProductOnOff(idx) {
       products[idx].enabled = !(products[idx].enabled !== false);
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
       renderProducts();
       renderAdminCatalog();
-      await pushToGoogleSheet(false);
     }
 
-    async function deleteProduct(idx) {
+    function deleteProduct(idx) {
       if (!confirm(`Delete ${products[idx].name}?`)) return;
       products.splice(idx, 1);
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
       renderProducts();
       renderAdminCatalog();
-      await pushToGoogleSheet(false);
     }
 
     init();
