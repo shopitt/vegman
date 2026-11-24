@@ -522,6 +522,12 @@
     let logoTapCount = 0;
     let logoTapTimer = null;
     let lastLookupPhone = "";
+    let customerGpsCoords = "";
+
+    function extractCoordsOnly(raw) {
+      const m = String(raw || "").match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+      return m ? `${m[1]}, ${m[2]}` : "";
+    }
 
     function parseVariants(str) {
       if (!str) return [{ label: "1 Pack", price: 20 }];
@@ -693,6 +699,7 @@
       }
       if (saved.name) document.getElementById("custName").value = saved.name;
       if (saved.address) document.getElementById("custAddress").value = saved.address;
+      if (saved.gpsCoords) customerGpsCoords = extractCoordsOnly(saved.gpsCoords);
       if (saved.name || saved.address) {
         document.getElementById("lookupStatus").textContent = "Saved details loaded";
       }
@@ -714,6 +721,7 @@
         if (saved.address && !document.getElementById("custAddress").value.trim()) {
           document.getElementById("custAddress").value = saved.address;
         }
+        if (saved.gpsCoords) customerGpsCoords = extractCoordsOnly(saved.gpsCoords);
         statusEl.textContent = "Found saved details ✓";
         return;
       }
@@ -728,10 +736,12 @@
         if (data.status === "found") {
           if (data.name) document.getElementById("custName").value = data.name;
           if (data.address) document.getElementById("custAddress").value = data.address;
+          if (data.gpsCoords) customerGpsCoords = extractCoordsOnly(data.gpsCoords);
           localStorage.setItem("vegman_customer", JSON.stringify({
             phone: phone10,
             name: data.name || document.getElementById("custName").value,
-            address: data.address || document.getElementById("custAddress").value
+            address: data.address || document.getElementById("custAddress").value,
+            gpsCoords: customerGpsCoords
           }));
           statusEl.textContent = "Address auto-filled from records ✓";
         } else {
@@ -748,25 +758,27 @@
         alert("GPS is not supported on this device.");
         return;
       }
-      statusEl.textContent = "Fetching GPS location...";
+      statusEl.textContent = "Fetching GPS coordinates...";
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
-          const { latitude, longitude } = pos.coords;
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          customerGpsCoords = `${lat}, ${lng}`;
           try {
-            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
             const j = await r.json();
-            const addr = j.display_name || `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`;
+            const addr = j.display_name || `Lat ${lat}, Lng ${lng}`;
             document.getElementById("custAddress").value = addr;
-            statusEl.textContent = "GPS address filled ✓";
+            statusEl.textContent = `GPS captured (${customerGpsCoords}) ✓`;
           } catch (e) {
-            document.getElementById("custAddress").value = `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`;
-            statusEl.textContent = "GPS coordinates filled ✓";
+            document.getElementById("custAddress").value = `Lat ${lat}, Lng ${lng}`;
+            statusEl.textContent = `GPS captured (${customerGpsCoords}) ✓`;
           }
         },
         () => {
           statusEl.textContent = "GPS skipped — enter address manually";
         },
-        { timeout: 8000 }
+        { enableHighAccuracy: true, timeout: 10000 }
       );
     }
 
@@ -775,7 +787,6 @@
       const bar = document.getElementById("categoryBar");
       const activeProducts = products.filter(p => p.enabled !== false);
 
-      // Show categories configured in mainCategories (keeping "All Items" if present, and hiding empty non-"All Items" categories unless newly added)
       const visibleCategories = mainCategories.filter(catKey => {
         if (catKey === "All Items") return activeProducts.length > 0;
         const hasProducts = activeProducts.some(p => p.category === catKey);
@@ -1180,7 +1191,8 @@
       localStorage.setItem("vegman_customer", JSON.stringify({
         phone: phone10,
         name,
-        address
+        address,
+        gpsCoords: customerGpsCoords
       }));
 
       const btn = document.getElementById("placeOrderBtn");
@@ -1205,6 +1217,7 @@
               customerName: name,
               phone: phone10,
               address,
+              gpsCoords: customerGpsCoords,
               slot,
               itemsSummary,
               itemTotal,
@@ -1224,6 +1237,7 @@
         `*Customer:* ${name}`,
         `*Phone:* ${phone10}`,
         `*Address:* ${address}`,
+        ...(customerGpsCoords ? [`*GPS:* https://maps.google.com/?q=${encodeURIComponent(customerGpsCoords)} (${customerGpsCoords})`] : []),
         `*Delivery Slot:* ${slot}`,
         `------------------------`,
         `*Items:*`,
