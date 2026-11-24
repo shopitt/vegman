@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vegman — Fresh-Cut Vegetables & Daily Essentials</title>
+  <title>Vegman — Fresh Vegetables & Daily Essentials</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -24,13 +24,15 @@
       to { transform: translateY(0); }
     }
     .animate-slide-up { animation: slideUp 0.22s ease-out; }
+    details > summary { list-style: none; }
+    details > summary::-webkit-details-marker { display: none; }
   </style>
 </head>
 <body class="pb-24">
 
   <!-- ==================== TOP INSTAMART-STYLE SEARCH & CATEGORY HEADER ==================== -->
   <header class="sticky top-0 z-30 bg-white border-b border-slate-100">
-    <div class="max-w-3xl mx-auto px-3 pt-2.5 pb-2">
+    <div class="max-w-5xl mx-auto px-3 pt-2.5 pb-2">
 
       <!-- Search Pill Bar + Clean Brand Logo (5-Tap Secret Admin Trigger) -->
       <div class="flex items-center gap-2.5">
@@ -62,34 +64,28 @@
         </div>
       </div>
 
-      <!-- Circular Sub-Heading Category Strip (Only shows categories with active products) -->
+      <!-- Circular Category Strip (All Items, Veggies, Fruit, Milk & Dairy, etc.) -->
       <div id="categoryBar" class="flex items-start gap-3 sm:gap-5 overflow-x-auto no-scrollbar pt-3 pb-1 mt-1.5 border-t border-slate-100">
-        <!-- Populated by JS -->
-      </div>
-
-      <!-- Optional Sub-Category Filter Pills (Shows when sub-categories exist, including "Bed") -->
-      <div id="subCategoryBar" class="hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2 pb-0.5">
         <!-- Populated by JS -->
       </div>
     </div>
   </header>
 
-  <!-- ==================== 1. CUSTOMER STORE VIEW (6-ITEM 2x3 GRID AT A TIME) ==================== -->
-  <main id="storeView" class="max-w-3xl mx-auto px-3 sm:px-4 pt-3">
-    <!-- 2-Column x 3-Row (6 products at a time) Grid -->
-    <div id="productGrid" class="grid grid-cols-2 gap-3 sm:gap-4">
+  <!-- ==================== 1. CUSTOMER STORE VIEW (2-COL MOBILE / 4-COL TAB & WEB) ==================== -->
+  <main id="storeView" class="max-w-5xl mx-auto px-3 sm:px-4 pt-3">
+    <div id="productGrid" class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
       <!-- Products populated by JS -->
     </div>
   </main>
 
   <!-- ==================== 2. HIDDEN ADMIN PANEL VIEW ==================== -->
-  <section id="adminView" class="hidden max-w-4xl mx-auto px-4 pt-4">
+  <section id="adminView" class="hidden max-w-5xl mx-auto px-4 pt-4">
 
     <!-- Two-Way Sync Control Bar -->
     <div class="bg-slate-900 text-white rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
       <div>
-        <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin & Two-Way Google Sheet Sync</h2>
-        <p class="text-xs text-slate-300">Manage products, slots, sub-headings, sub-categories & live Google Sheet sync.</p>
+        <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin & Google Sheet Sync</h2>
+        <p class="text-xs text-slate-300">Manage main categories, products, delivery slots & live Google Sheet sync.</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button onclick="pullFromGoogleSheet(true)" class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold transition">
@@ -101,60 +97,51 @@
       </div>
     </div>
 
-    <!-- Delivery Slots ON/OFF Control -->
+    <!-- Main Categories Manager (Add / Remove from All Items, Veggies, Fruit, etc. + Photo Upload) -->
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
-      <div class="flex items-center justify-between mb-3">
-        <div>
-          <h2 class="font-extrabold text-base text-slate-900">Delivery Slots (ON / OFF)</h2>
-          <p class="text-xs text-slate-500">Turn OFF any slot to hide it from the customer checkout page.</p>
-        </div>
-      </div>
-      <div id="adminSlotToggles" class="space-y-3">
-        <!-- Populated by JS -->
-      </div>
-    </div>
+      <h2 class="font-extrabold text-base text-slate-900 mb-1">Main Categories (All Items, Veggies, Fruit & More)</h2>
+      <p class="text-xs text-slate-500 mb-3">Add new top categories, remove unwanted ones, or update their circular icons.</p>
 
-    <!-- Sub-Heading Photo Upload & Sub-Category (including "Bed") -->
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
-      <h2 class="font-extrabold text-base text-slate-900 mb-3">Sub-Heading Photo & Sub-Category Setup</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-        <!-- Upload Photo for Sub-Heading / Category -->
-        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
-          <label class="block text-xs font-bold text-slate-700">Upload Photo for Sub-Heading (Category)</label>
-          <select id="subHeadingTargetSelect" onchange="onSubHeadingSelectChange()"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold">
-            <!-- Populated by JS -->
-          </select>
-          <input id="subHeadingFileInput" type="file" accept="image/*" onchange="handleSubHeadingPhotoUpload(event)"
-            class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700" />
-          <input id="subHeadingImgUrlInput" type="url" placeholder="Image URL or upload above"
-            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
-          <p id="subHeadingUploadStatus" class="text-[11px] font-semibold text-emerald-700"></p>
-          <button type="button" onclick="saveSubHeadingPhoto()"
-            class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
-            Save Sub-Heading Photo
-          </button>
-        </div>
-
-        <!-- Add Sub-Category (e.g., Bed) -->
-        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
-          <label class="block text-xs font-bold text-slate-700">Add Sub-Category (e.g., Bed)</label>
+        <!-- Add / Remove Categories -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-3">
+          <label class="block text-xs font-bold text-slate-700">Add or Remove Category Tab</label>
           <div class="flex gap-2">
-            <input id="newSubCategoryInput" type="text" placeholder="e.g., Bed"
+            <input id="newMainCategoryInput" type="text" placeholder="e.g., Leafy Greens, Spices, Snacks"
+              onkeydown="if(event.key==='Enter') addMainCategory()"
               class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
-            <button type="button" onclick="addSubCategory()"
+            <button type="button" onclick="addMainCategory()"
               class="px-3.5 py-2 rounded-xl instamart-blue text-white text-xs font-bold shrink-0">
               + Add
             </button>
           </div>
-          <div id="subCategoryChipsList" class="flex flex-wrap gap-1.5 pt-1">
+          <div id="mainCategoryChipsList" class="flex flex-wrap gap-1.5">
             <!-- Populated by JS -->
           </div>
+        </div>
+
+        <!-- Upload Photo for Any Main Category -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+          <label class="block text-xs font-bold text-slate-700">Upload Circular Icon for Category</label>
+          <select id="catPhotoTargetSelect" onchange="onCategoryPhotoSelectChange()"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold">
+            <!-- Populated by JS -->
+          </select>
+          <input id="catPhotoFileInput" type="file" accept="image/*" onchange="handleCategoryPhotoUpload(event)"
+            class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700" />
+          <input id="catPhotoUrlInput" type="url" placeholder="Image URL or upload above"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
+          <p id="catPhotoUploadStatus" class="text-[11px] font-semibold text-emerald-700"></p>
+          <button type="button" onclick="saveCategoryPhoto()"
+            class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+            Save Category Photo
+          </button>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <!-- Add New Product + Delivery Slots ON/OFF -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
       <!-- Add New Product -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <h2 class="font-extrabold text-base text-slate-900 mb-3">Add New Product</h2>
@@ -166,27 +153,15 @@
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">Subtitle / Note</label>
-              <input id="newVegHindi" type="text" placeholder="e.g., Fresh Morning" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              <input id="newVegHindi" type="text" placeholder="e.g., Farm Fresh" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Category *</label>
-              <input id="newVegCat" list="categoryOptions" placeholder="e.g., Veggies" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white" />
-              <datalist id="categoryOptions">
-                <option value="Veggies">
-                <option value="Fruit">
-                <option value="Milk & Dairy">
-                <option value="Breakfast Essentials">
-                <option value="Drinks & More">
-              </datalist>
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Sub-Category</label>
-              <input id="newVegSubCat" list="subCategoryOptions" placeholder="e.g., Bed" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white" />
-              <datalist id="subCategoryOptions"></datalist>
-            </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Select Category *</label>
+            <select id="newVegCatSelect" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold">
+              <!-- Populated from Main Categories -->
+            </select>
           </div>
 
           <!-- Dynamic Variant Builder -->
@@ -222,53 +197,71 @@
         </div>
       </div>
 
-      <!-- Store & Security Settings -->
+      <!-- Delivery Slots ON/OFF Control -->
       <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-        <h2 class="font-extrabold text-base text-slate-900 mb-3">Store & Security Settings</h2>
-        <div class="space-y-3 text-sm">
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Store Name</label>
-              <input id="adminStoreName" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Admin Secret PIN</label>
-              <input id="adminPinInput" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">WhatsApp (with 91)</label>
-              <input id="adminWhatsapp" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">UPI ID</label>
-              <input id="adminUpiId" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Google Sheets Web App URL (/exec)</label>
-            <input id="adminScriptUrl" type="url" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Free ImgBB API Key</label>
-            <input id="adminImgbbKey" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
-          </div>
-          <button onclick="saveAdminSettings()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition">
-            Save Store Settings
-          </button>
+        <h2 class="font-extrabold text-base text-slate-900 mb-1">Delivery Slots (ON / OFF)</h2>
+        <p class="text-xs text-slate-500 mb-3">Turn OFF any slot to hide it from the checkout page.</p>
+        <div id="adminSlotToggles" class="space-y-2.5">
+          <!-- Populated by JS -->
         </div>
       </div>
     </div>
 
     <!-- Manage Existing Catalog (Right-Side Corner ON/OFF Toggle) -->
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mt-5">
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
       <div class="flex items-center justify-between mb-3">
         <h2 class="font-extrabold text-base text-slate-900">Product List (Right-Corner ON/OFF Hides From Store)</h2>
         <span class="text-xs text-slate-500" id="catalogCountLabel">0 items</span>
       </div>
       <div id="adminCatalogList" class="divide-y divide-slate-100"></div>
     </div>
+
+    <!-- Minimal Collapsible Store & Security Settings Section -->
+    <details class="bg-white rounded-2xl border border-slate-200 shadow-xs mb-6 group">
+      <summary class="px-5 py-3.5 flex items-center justify-between cursor-pointer select-none">
+        <div class="flex items-center gap-2">
+          <span class="text-sm">⚙️</span>
+          <span class="font-extrabold text-xs sm:text-sm text-slate-800">Store & Security Settings</span>
+          <span class="text-[11px] text-slate-400 font-medium">(PIN, UPI, WhatsApp, Script URL)</span>
+        </div>
+        <span class="text-xs font-bold text-slate-500 group-open:rotate-180 transition-transform">▼</span>
+      </summary>
+      <div class="px-5 pb-5 pt-2 border-t border-slate-100 space-y-3 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">Store Name</label>
+            <input id="adminStoreName" type="text" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">Admin PIN</label>
+            <input id="adminPinInput" type="text" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">WhatsApp (91...)</label>
+            <input id="adminWhatsapp" type="text" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">UPI ID</label>
+            <input id="adminUpiId" type="text" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">Google Sheets Web App URL (/exec)</label>
+            <input id="adminScriptUrl" type="url" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">ImgBB API Key</label>
+            <input id="adminImgbbKey" type="text" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300" />
+          </div>
+        </div>
+        <div class="flex justify-end">
+          <button onclick="saveAdminSettings()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition">
+            Save Settings
+          </button>
+        </div>
+      </div>
+    </details>
   </section>
 
   <!-- ==================== INSTAMART QUANTITY SELECTION BOTTOM SHEET MODAL ==================== -->
@@ -382,7 +375,7 @@
             class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
         </div>
 
-        <!-- Categorized Delivery Slot Selector (3 Tabs per Period, Controlled by Admin ON/OFF) -->
+        <!-- Categorized Delivery Slot Selector -->
         <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3">
           <label class="block text-xs font-extrabold text-slate-800 mb-2">Select Delivery Slot</label>
           <div id="checkoutSlotContainer" class="space-y-2.5">
@@ -481,6 +474,15 @@
       }
     ];
 
+    const DEFAULT_MAIN_CATEGORIES = [
+      "All Items",
+      "Veggies",
+      "Fruit",
+      "Milk & Dairy",
+      "Breakfast Essentials",
+      "Drinks & More"
+    ];
+
     const DEFAULT_CATEGORY_IMAGES = {
       "All Items": "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80",
       "Veggies": "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=200&q=80",
@@ -491,12 +493,14 @@
     };
 
     const DEFAULT_PRODUCTS = [
-      { id: "1", name: "Lady Finger (Bhindi)", hindi: "Fresh Morning", category: "Veggies", subCategory: "Bed", variants: "250g:22, 500g:42", enabled: true, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=400&q=80" },
-      { id: "2", name: "Red Onion (Pyaz)", hindi: "Fresh Morning", category: "Veggies", subCategory: "Bed", variants: "250g:18, 500g:35", enabled: true, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=400&q=80" },
-      { id: "3", name: "Tomato (Tamatar)", hindi: "Farm Fresh", category: "Veggies", subCategory: "", variants: "250g:15, 500g:28", enabled: true, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80" },
-      { id: "4", name: "Potato (Aloo)", hindi: "Daily Essential", category: "Veggies", subCategory: "", variants: "500g:20, 1kg:38", enabled: true, image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=400&q=80" },
-      { id: "5", name: "Fresh Cow Milk", hindi: "Morning Pouch", category: "Milk & Dairy", subCategory: "", variants: "500ml:30, 1 Litre:58", enabled: true, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80" },
-      { id: "6", name: "Farm Fresh Eggs", hindi: "White Eggs", category: "Breakfast Essentials", subCategory: "", variants: "6 Pcs:45, 12 Pcs:85", enabled: true, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=400&q=80" }
+      { id: "1", name: "Lady Finger (Bhindi)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:22, 500g:42", enabled: true, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=400&q=80" },
+      { id: "2", name: "Red Onion (Pyaz)", hindi: "Fresh Morning", category: "Veggies", variants: "250g:18, 500g:35", enabled: true, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=400&q=80" },
+      { id: "3", name: "Tomato (Tamatar)", hindi: "Farm Fresh", category: "Veggies", variants: "250g:15, 500g:28", enabled: true, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80" },
+      { id: "4", name: "Potato (Aloo)", hindi: "Daily Essential", category: "Veggies", variants: "500g:20, 1kg:38", enabled: true, image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=400&q=80" },
+      { id: "5", name: "Fresh Cow Milk", hindi: "Morning Pouch", category: "Milk & Dairy", variants: "500ml:30, 1 Litre:58", enabled: true, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80" },
+      { id: "6", name: "Farm Fresh Eggs", hindi: "White Eggs", category: "Breakfast Essentials", variants: "6 Pcs:45, 12 Pcs:85", enabled: true, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=400&q=80" },
+      { id: "7", name: "Fresh Carrots (Gajar)", hindi: "Crunchy & Sweet", category: "Veggies", variants: "250g:18, 500g:34", enabled: true, image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=400&q=80" },
+      { id: "8", name: "Red Apples (Seb)", hindi: "Crisp & Juicy", category: "Fruit", variants: "500g:65, 1kg:125", enabled: true, image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=400&q=80" }
     ];
 
     let savedSettings = JSON.parse(localStorage.getItem("vegman_settings")) || {};
@@ -505,15 +509,14 @@
     if (!settings.imgbbApiKey) settings.imgbbApiKey = DEFAULT_SETTINGS.imgbbApiKey;
 
     let slotGroups = JSON.parse(localStorage.getItem("vegman_slots")) || JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+    let mainCategories = JSON.parse(localStorage.getItem("vegman_main_categories")) || [...DEFAULT_MAIN_CATEGORIES];
     let categoryImages = { ...DEFAULT_CATEGORY_IMAGES, ...(JSON.parse(localStorage.getItem("vegman_cat_images")) || {}) };
-    let subCategories = JSON.parse(localStorage.getItem("vegman_subcategories")) || ["Bed"];
     let products = JSON.parse(localStorage.getItem("vegman_products")) || [...DEFAULT_PRODUCTS];
 
     let selectedVariantIdx = {};
     let activePopupProductId = null;
     let cart = [];
-    let selectedCategory = "All Items";
-    let selectedSubCategory = "All";
+    let selectedCategory = mainCategories[0] || "All Items";
     let selectedDeliverySlot = "";
     let paymentMode = "UPI";
     let logoTapCount = 0;
@@ -578,7 +581,7 @@
       document.getElementById("adminView").classList.remove("hidden");
       document.getElementById("adminExitBar").classList.remove("hidden");
       renderAdminSlotToggles();
-      renderSubHeadingManager();
+      renderMainCategoryManager();
       renderAdminCatalog();
       pullFromGoogleSheet(false);
     }
@@ -608,7 +611,6 @@
             }));
             localStorage.setItem("vegman_products", JSON.stringify(products));
             renderCategories();
-            renderSubCategories();
             renderProducts();
             renderAdminCatalog();
             setSyncStatus("Synced ✓");
@@ -654,11 +656,10 @@
       applySettingsToUI();
       loadSavedCustomerLocal();
       renderCategories();
-      renderSubCategories();
       renderProducts();
       renderCheckoutSlots();
       renderAdminSlotToggles();
-      renderSubHeadingManager();
+      renderMainCategoryManager();
       renderAdminCatalog();
 
       const params = new URLSearchParams(window.location.search);
@@ -672,7 +673,7 @@
 
     function applySettingsToUI() {
       document.getElementById("headerStoreName").textContent = settings.storeName;
-      document.title = settings.storeName + " — Fresh-Cut Vegetables & Daily Essentials";
+      document.title = settings.storeName + " — Fresh Vegetables & Daily Essentials";
       document.getElementById("adminStoreName").value = settings.storeName;
       document.getElementById("adminPinInput").value = settings.adminPin;
       document.getElementById("adminWhatsapp").value = settings.whatsappNumber;
@@ -705,7 +706,6 @@
       if (!phone10 || phone10 === lastLookupPhone) return;
       lastLookupPhone = phone10;
 
-      // Check local customer cache first
       const saved = JSON.parse(localStorage.getItem("vegman_customer") || "null");
       if (saved && String(saved.phone || "").replace(/\D/g, "").slice(-10) === phone10) {
         if (saved.name && !document.getElementById("custName").value.trim()) {
@@ -764,29 +764,35 @@
           }
         },
         () => {
-          statusEl.textContent = "GPS skipped / denied — enter address manually";
+          statusEl.textContent = "GPS skipped — enter address manually";
         },
         { timeout: 8000 }
       );
     }
 
-    // ==================== CIRCULAR CATEGORY & SUB-CATEGORY STRIPS ====================
+    // ==================== CIRCULAR MAIN CATEGORY STRIP ====================
     function renderCategories() {
       const bar = document.getElementById("categoryBar");
       const activeProducts = products.filter(p => p.enabled !== false);
-      if (activeProducts.length === 0) {
+
+      // Show categories configured in mainCategories (keeping "All Items" if present, and hiding empty non-"All Items" categories unless newly added)
+      const visibleCategories = mainCategories.filter(catKey => {
+        if (catKey === "All Items") return activeProducts.length > 0;
+        const hasProducts = activeProducts.some(p => p.category === catKey);
+        const isCustomAdded = !DEFAULT_MAIN_CATEGORIES.includes(catKey);
+        return hasProducts || isCustomAdded;
+      });
+
+      if (visibleCategories.length === 0) {
         bar.innerHTML = "";
         return;
       }
 
-      const activeCategoryKeys = [...new Set(activeProducts.map(p => p.category).filter(Boolean))];
-      if (selectedCategory !== "All Items" && !activeCategoryKeys.includes(selectedCategory)) {
-        selectedCategory = "All Items";
+      if (!visibleCategories.includes(selectedCategory)) {
+        selectedCategory = visibleCategories[0];
       }
 
-      const orderedKeys = ["All Items", ...activeCategoryKeys];
-
-      bar.innerHTML = orderedKeys.map(catKey => {
+      bar.innerHTML = visibleCategories.map(catKey => {
         const firstProdInCat = activeProducts.find(p => p.category === catKey && p.image);
         const thumbUrl = categoryImages[catKey] || (firstProdInCat ? firstProdInCat.image : DEFAULT_CATEGORY_IMAGES["All Items"]);
         const isActive = selectedCategory === catKey;
@@ -807,59 +813,11 @@
           </button>
         `;
       }).join("");
-
-      const dataList = document.getElementById("categoryOptions");
-      if (dataList) {
-        const allCats = [...new Set(["Veggies", "Fruit", "Milk & Dairy", "Breakfast Essentials", "Drinks & More", ...activeCategoryKeys])];
-        dataList.innerHTML = allCats.map(c => `<option value="${c}">`).join("");
-      }
     }
 
     function selectCategory(cat) {
       selectedCategory = cat;
-      selectedSubCategory = "All";
       renderCategories();
-      renderSubCategories();
-      renderProducts();
-    }
-
-    function renderSubCategories() {
-      const bar = document.getElementById("subCategoryBar");
-      const activeProducts = products.filter(p => p.enabled !== false && (selectedCategory === "All Items" || p.category === selectedCategory));
-      const prodSubCats = activeProducts.map(p => (p.subCategory || "").trim()).filter(Boolean);
-      const list = [...new Set([...subCategories, ...prodSubCats])].filter(Boolean);
-
-      const subListEl = document.getElementById("subCategoryOptions");
-      if (subListEl) {
-        subListEl.innerHTML = list.map(sc => `<option value="${sc}">`).join("");
-      }
-
-      if (list.length === 0) {
-        bar.classList.add("hidden");
-        bar.innerHTML = "";
-        return;
-      }
-
-      bar.classList.remove("hidden");
-      const pills = ["All", ...list];
-      bar.innerHTML = pills.map(sc => {
-        const active = selectedSubCategory === sc;
-        return `
-          <button onclick="selectSubCategory('${sc.replace(/'/g, "\\'")}')"
-            class="px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 border transition ${
-              active
-                ? "instamart-blue text-white border-transparent"
-                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-            }">
-            ${sc}
-          </button>
-        `;
-      }).join("");
-    }
-
-    function selectSubCategory(sc) {
-      selectedSubCategory = sc;
-      renderSubCategories();
       renderProducts();
     }
 
@@ -957,7 +915,7 @@
       document.getElementById("vpItemTotal").textContent = `Item Total: ₹${productTotalInCart}`;
     }
 
-    // ==================== 6-ITEM (2x3) STOREFRONT GRID ====================
+    // ==================== RESPONSIVE GRID (2-COL MOBILE / 4-COL WEB & TAB) ====================
     function getTotalProductQtyInCart(id) {
       return cart.filter(i => String(i.id) === String(id)).reduce((sum, i) => sum + i.qty, 0);
     }
@@ -969,15 +927,13 @@
       const filtered = products.filter(p => {
         if (p.enabled === false) return false;
         const matchesCat = selectedCategory === "All Items" || p.category === selectedCategory;
-        const matchesSub = selectedSubCategory === "All" || (p.subCategory || "").trim() === selectedSubCategory;
         const matchesQuery = p.name.toLowerCase().includes(query) ||
-          (p.hindi && p.hindi.toLowerCase().includes(query)) ||
-          (p.subCategory && p.subCategory.toLowerCase().includes(query));
-        return matchesCat && matchesSub && matchesQuery;
+          (p.hindi && p.hindi.toLowerCase().includes(query));
+        return matchesCat && matchesQuery;
       });
 
       if (filtered.length === 0) {
-        grid.innerHTML = `<div class="col-span-2 text-center py-10 text-xs font-semibold text-slate-500">No items available right now.</div>`;
+        grid.innerHTML = `<div class="col-span-2 md:col-span-4 text-center py-10 text-xs font-semibold text-slate-500">No items available right now.</div>`;
         return;
       }
 
@@ -1029,7 +985,7 @@
 
           <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
             <span class="font-extrabold text-sm text-slate-900">₹${activeVar.price}</span>
-            ${p.subCategory ? `<span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">${p.subCategory}</span>` : ''}
+            <span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">FRESH</span>
           </div>
 
           <h3 onclick="${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
@@ -1081,8 +1037,8 @@
       const container = document.getElementById("checkoutSlotContainer");
       const enabledSlotsList = [];
 
-      const html = slotGroups.map((grp, gIdx) => {
-        const buttonsHtml = grp.slots.map((s, sIdx) => {
+      const html = slotGroups.map(grp => {
+        const buttonsHtml = grp.slots.map(s => {
           if (!s.enabled) return "";
           const fullVal = `${grp.group} (${s.label})`;
           enabledSlotsList.push(fullVal);
@@ -1220,7 +1176,6 @@
         return;
       }
 
-      // Save customer locally for instant next-time auto-fill
       const phone10 = phone.replace(/\D/g, "").slice(-10) || phone;
       localStorage.setItem("vegman_customer", JSON.stringify({
         phone: phone10,
@@ -1293,21 +1248,113 @@
     }
 
     // ==================== ADMIN FUNCTIONS ====================
+    function renderMainCategoryManager() {
+      const chipsEl = document.getElementById("mainCategoryChipsList");
+      chipsEl.innerHTML = mainCategories.map((cat, idx) => `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-300 text-xs font-bold text-slate-800">
+          ${cat}
+          ${mainCategories.length > 1 ? `
+            <button type="button" onclick="removeMainCategory(${idx})" title="Remove ${cat}" class="text-rose-600 font-extrabold hover:text-rose-800">✕</button>
+          ` : ''}
+        </span>
+      `).join("");
+
+      const photoSel = document.getElementById("catPhotoTargetSelect");
+      const prevPhotoVal = photoSel.value;
+      photoSel.innerHTML = mainCategories.map(c => `<option value="${c}">${c}</option>`).join("");
+      photoSel.value = mainCategories.includes(prevPhotoVal) ? prevPhotoVal : (mainCategories[0] || "All Items");
+      onCategoryPhotoSelectChange();
+
+      const prodCatSel = document.getElementById("newVegCatSelect");
+      const assignableCats = mainCategories.filter(c => c !== "All Items");
+      const listForProd = assignableCats.length > 0 ? assignableCats : ["Veggies"];
+      const prevProdCat = prodCatSel.value;
+      prodCatSel.innerHTML = listForProd.map(c => `<option value="${c}">${c}</option>`).join("");
+      prodCatSel.value = listForProd.includes(prevProdCat) ? prevProdCat : listForProd[0];
+    }
+
+    function addMainCategory() {
+      const inp = document.getElementById("newMainCategoryInput");
+      const val = inp.value.trim();
+      if (!val) return;
+      if (!mainCategories.some(c => c.toLowerCase() === val.toLowerCase())) {
+        mainCategories.push(val);
+        localStorage.setItem("vegman_main_categories", JSON.stringify(mainCategories));
+      }
+      inp.value = "";
+      renderMainCategoryManager();
+      renderCategories();
+    }
+
+    function removeMainCategory(idx) {
+      const removed = mainCategories[idx];
+      if (!removed) return;
+      mainCategories.splice(idx, 1);
+      localStorage.setItem("vegman_main_categories", JSON.stringify(mainCategories));
+      if (selectedCategory === removed) {
+        selectedCategory = mainCategories[0] || "All Items";
+      }
+      renderMainCategoryManager();
+      renderCategories();
+      renderProducts();
+    }
+
+    function onCategoryPhotoSelectChange() {
+      const cat = document.getElementById("catPhotoTargetSelect").value;
+      document.getElementById("catPhotoUrlInput").value = categoryImages[cat] || "";
+      document.getElementById("catPhotoUploadStatus").textContent = "";
+    }
+
+    async function handleCategoryPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById("catPhotoUploadStatus");
+      if (!settings.imgbbApiKey) {
+        statusEl.textContent = "Add ImgBB API key in Store Settings first.";
+        return;
+      }
+      statusEl.textContent = "Uploading category icon...";
+      const fd = new FormData();
+      fd.append("image", file);
+      try {
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${settings.imgbbApiKey}`, { method: "POST", body: fd });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("catPhotoUrlInput").value = data.data.url;
+          statusEl.textContent = "Uploaded! Click 'Save Category Photo'.";
+        } else {
+          statusEl.textContent = "Upload failed.";
+        }
+      } catch (e) {
+        statusEl.textContent = "Network error during upload.";
+      }
+    }
+
+    function saveCategoryPhoto() {
+      const cat = document.getElementById("catPhotoTargetSelect").value;
+      const url = document.getElementById("catPhotoUrlInput").value.trim();
+      if (!cat || !url) return;
+      categoryImages[cat] = url;
+      localStorage.setItem("vegman_cat_images", JSON.stringify(categoryImages));
+      renderCategories();
+      document.getElementById("catPhotoUploadStatus").textContent = `Saved icon for "${cat}" ✓`;
+    }
+
     function renderAdminSlotToggles() {
       const box = document.getElementById("adminSlotToggles");
       box.innerHTML = slotGroups.map((grp, gIdx) => `
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
-          <div class="text-xs font-extrabold text-slate-700 mb-2">${grp.group}</div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+          <div class="text-[11px] font-extrabold text-slate-700 mb-1.5">${grp.group}</div>
+          <div class="grid grid-cols-3 gap-1.5">
             ${grp.slots.map((s, sIdx) => `
               <button type="button" onclick="toggleSlot(${gIdx}, ${sIdx})"
-                class="flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold transition ${
+                class="flex flex-col sm:flex-row items-center justify-between px-2 py-1.5 rounded-lg border text-[10px] font-bold transition ${
                   s.enabled
                     ? "bg-emerald-50 border-emerald-200 text-emerald-900"
                     : "bg-slate-100 border-slate-200 text-slate-400"
                 }">
-                <span>${s.label}</span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
+                <span class="truncate">${s.label}</span>
+                <span class="mt-0.5 sm:mt-0 px-1.5 py-0.5 rounded text-[9px] font-extrabold ${
                   s.enabled ? "bg-emerald-600 text-white" : "bg-slate-400 text-white"
                 }">
                   ${s.enabled ? "ON" : "OFF"}
@@ -1324,90 +1371,6 @@
       localStorage.setItem("vegman_slots", JSON.stringify(slotGroups));
       renderAdminSlotToggles();
       renderCheckoutSlots();
-    }
-
-    function renderSubHeadingManager() {
-      const sel = document.getElementById("subHeadingTargetSelect");
-      const knownCats = [
-        ...Object.keys(DEFAULT_CATEGORY_IMAGES),
-        ...Object.keys(categoryImages),
-        ...products.map(p => p.category).filter(Boolean)
-      ];
-      const uniqueCats = [...new Set(knownCats)];
-      const currentVal = sel.value || uniqueCats[0] || "Veggies";
-
-      sel.innerHTML = uniqueCats.map(c => `<option value="${c}">${c}</option>`).join("");
-      sel.value = uniqueCats.includes(currentVal) ? currentVal : uniqueCats[0];
-      onSubHeadingSelectChange();
-
-      const chipsEl = document.getElementById("subCategoryChipsList");
-      chipsEl.innerHTML = subCategories.map((sc, idx) => `
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-300 text-xs font-bold text-slate-800">
-          ${sc}
-          <button type="button" onclick="removeSubCategory(${idx})" class="text-rose-600 font-extrabold">✕</button>
-        </span>
-      `).join("");
-    }
-
-    function onSubHeadingSelectChange() {
-      const cat = document.getElementById("subHeadingTargetSelect").value;
-      document.getElementById("subHeadingImgUrlInput").value = categoryImages[cat] || "";
-      document.getElementById("subHeadingUploadStatus").textContent = "";
-    }
-
-    async function handleSubHeadingPhotoUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const statusEl = document.getElementById("subHeadingUploadStatus");
-      if (!settings.imgbbApiKey) {
-        statusEl.textContent = "Add ImgBB API key in Store Settings first.";
-        return;
-      }
-      statusEl.textContent = "Uploading sub-heading photo...";
-      const fd = new FormData();
-      fd.append("image", file);
-      try {
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${settings.imgbbApiKey}`, { method: "POST", body: fd });
-        const data = await res.json();
-        if (data.success) {
-          document.getElementById("subHeadingImgUrlInput").value = data.data.url;
-          statusEl.textContent = "Uploaded! Click 'Save Sub-Heading Photo'.";
-        } else {
-          statusEl.textContent = "Upload failed.";
-        }
-      } catch (e) {
-        statusEl.textContent = "Network error during upload.";
-      }
-    }
-
-    function saveSubHeadingPhoto() {
-      const cat = document.getElementById("subHeadingTargetSelect").value;
-      const url = document.getElementById("subHeadingImgUrlInput").value.trim();
-      if (!cat || !url) return;
-      categoryImages[cat] = url;
-      localStorage.setItem("vegman_cat_images", JSON.stringify(categoryImages));
-      renderCategories();
-      document.getElementById("subHeadingUploadStatus").textContent = `Saved photo for "${cat}" ✓`;
-    }
-
-    function addSubCategory() {
-      const inp = document.getElementById("newSubCategoryInput");
-      const val = inp.value.trim();
-      if (!val) return;
-      if (!subCategories.includes(val)) {
-        subCategories.push(val);
-        localStorage.setItem("vegman_subcategories", JSON.stringify(subCategories));
-      }
-      inp.value = "";
-      renderSubHeadingManager();
-      renderSubCategories();
-    }
-
-    function removeSubCategory(idx) {
-      subCategories.splice(idx, 1);
-      localStorage.setItem("vegman_subcategories", JSON.stringify(subCategories));
-      renderSubHeadingManager();
-      renderSubCategories();
     }
 
     function addVariantRow() {
@@ -1468,8 +1431,7 @@
     async function addNewVegetable() {
       const name = document.getElementById("newVegName").value.trim();
       const hindi = document.getElementById("newVegHindi").value.trim();
-      const category = document.getElementById("newVegCat").value.trim() || "Veggies";
-      const subCategory = document.getElementById("newVegSubCat").value.trim();
+      const category = document.getElementById("newVegCatSelect").value || "Veggies";
       const image = document.getElementById("newVegImgUrl").value.trim();
 
       const labels = document.querySelectorAll("#variantBuilderRows .var-label");
@@ -1487,17 +1449,11 @@
         return;
       }
 
-      if (subCategory && !subCategories.includes(subCategory)) {
-        subCategories.push(subCategory);
-        localStorage.setItem("vegman_subcategories", JSON.stringify(subCategories));
-      }
-
       products.unshift({
         id: String(Date.now()),
         name,
         hindi,
         category,
-        subCategory,
         variants: variantPairs.join(", "),
         enabled: true,
         image
@@ -1505,14 +1461,11 @@
 
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
-      renderSubCategories();
       renderProducts();
       renderAdminCatalog();
-      renderSubHeadingManager();
 
       document.getElementById("newVegName").value = "";
       document.getElementById("newVegHindi").value = "";
-      document.getElementById("newVegSubCat").value = "";
       document.getElementById("newVegImgUrl").value = "";
       document.getElementById("uploadStatus").textContent = "";
       labels.forEach(i => i.value = "");
@@ -1530,7 +1483,7 @@
         <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
           <div>
             <span class="font-bold text-slate-900 text-sm">${p.name}</span>
-            <span class="text-slate-500">(${p.category}${p.subCategory ? ' • ' + p.subCategory : ''})</span>
+            <span class="text-slate-500">(${p.category})</span>
           </div>
           <div class="flex items-center justify-end gap-2">
             <input type="text" value="${p.variants}" onchange="updateAdminVariants(${idx}, this.value)"
@@ -1559,7 +1512,6 @@
       products[idx].enabled = !(products[idx].enabled !== false);
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
-      renderSubCategories();
       renderProducts();
       renderAdminCatalog();
       await pushToGoogleSheet(false);
@@ -1570,7 +1522,6 @@
       products.splice(idx, 1);
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
-      renderSubCategories();
       renderProducts();
       renderAdminCatalog();
       await pushToGoogleSheet(false);
