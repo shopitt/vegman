@@ -179,7 +179,7 @@
       </div>
     </div>
 
-    <!-- Add New Product + Delivery Slots ON/OFF (Same-Line Layout) -->
+    <!-- Add New Product + Delivery Slots ON/OFF (Single-Line Layout) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-5">
       <!-- Add New Product -->
       <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -236,7 +236,7 @@
       <!-- Delivery Slots ON/OFF Control (All on Same Line) -->
       <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <h2 class="font-extrabold text-base text-slate-900 mb-1">Delivery Slots (ON / OFF)</h2>
-        <p class="text-xs text-slate-500 mb-3">Tap any slot pill to toggle ON or OFF. Turn OFF hides it from checkout.</p>
+        <p class="text-xs text-slate-500 mb-3">Tap any slot pill to switch ON or OFF. Turning OFF hides it from checkout.</p>
         <div id="adminSlotToggles" class="space-y-2.5 overflow-x-auto no-scrollbar">
           <!-- Populated by JS -->
         </div>
@@ -248,7 +248,7 @@
       <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div>
           <h2 class="font-extrabold text-base text-slate-900">Product List</h2>
-          <p class="text-[11px] text-slate-500">Click <strong>In Stock / Out of Stock</strong> to switch availability on the store, or <strong>ON / OFF</strong> to show/hide the item.</p>
+          <p class="text-[11px] text-slate-500">Click <strong>In Stock / Out of Stock</strong> to switch stock status on click, or <strong>ON / OFF</strong> to show/hide the product.</p>
         </div>
         <span class="text-xs text-slate-500" id="catalogCountLabel">0 items</span>
       </div>
@@ -1368,7 +1368,6 @@
       document.getElementById("catPhotoUploadStatus").textContent = `Saved icon for "${cat}" ✓`;
     }
 
-    // All slots for a group stay on a single line: "Morning - 6:30 – 7:30 AM [ON]  7:30 – 9:00 AM [ON]  9:00 – 10:00 AM [ON]"
     function renderAdminSlotToggles() {
       const box = document.getElementById("adminSlotToggles");
       box.innerHTML = slotGroups.map((grp, gIdx) => `
