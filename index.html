@@ -3,102 +3,161 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vegman — Online Fresh-Cut Vegetables</title>
+  <title>Vegman — Fresh-Cut Vegetables & Daily Essentials</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background-color: #f8fafc;
-      color: #0f172a;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #ffffff;
+      color: #1c1e21;
       -webkit-tap-highlight-color: transparent;
     }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .instamart-blue { background-color: #0258e8; }
+    .instamart-blue-text { color: #0258e8; }
+    .instamart-blue-border { border-color: #0258e8; }
+    .instamart-lime { background-color: #71c61e; }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-slide-up { animation: slideUp 0.22s ease-out; }
   </style>
 </head>
 <body class="pb-24">
 
-  <!-- Top Header (Clean Customer View — No Public Admin Button) -->
-  <header class="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
-      <div onclick="handleSecretLogoTap()" class="flex items-center gap-2.5 cursor-pointer select-none">
-        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-extrabold text-lg shadow-sm">
-          🥬
+  <!-- ==================== TOP INSTAMART-STYLE SEARCH & CATEGORY HEADER ==================== -->
+  <header class="sticky top-0 z-30 bg-white border-b border-slate-100">
+    <div class="max-w-3xl mx-auto px-3 pt-2.5 pb-2">
+
+      <!-- Search Pill Bar + Clean Brand Logo (5-Tap Secret Admin Trigger) -->
+      <div class="flex items-center gap-2.5">
+        <div onclick="handleSecretLogoTap()" class="flex items-center gap-1.5 shrink-0 cursor-pointer select-none pr-1">
+          <div class="w-8 h-8 rounded-xl instamart-blue text-white flex items-center justify-center font-extrabold text-sm shadow-2xs">
+            V
+          </div>
+          <div class="leading-none">
+            <span id="headerStoreName" class="font-extrabold text-sm text-slate-900 block">Vegman</span>
+            <span class="text-[9px] font-bold instamart-blue-text">DAILY DELIVERY</span>
+          </div>
         </div>
-        <div>
-          <h1 id="headerStoreName" class="font-extrabold text-base sm:text-lg leading-tight text-slate-900">Vegman</h1>
-          <p class="text-xs text-emerald-700 font-medium">Cut Fresh Daily • Morning Delivery</p>
+
+        <!-- Search Input Pill -->
+        <div class="relative flex-1">
+          <input id="searchInput" type="text" oninput="renderProducts()" placeholder="Search vegetables, fruit, milk, eggs..."
+            class="w-full pl-3.5 pr-8 py-2 rounded-xl bg-slate-100/90 border border-slate-200/80 text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-blue-500 transition" />
+          <svg class="w-4 h-4 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path>
+          </svg>
+        </div>
+
+        <!-- Shown ONLY when Admin is unlocked -->
+        <div id="adminExitBar" class="hidden flex items-center gap-1.5 shrink-0">
+          <span id="syncIndicator" class="text-[10px] font-bold px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700">Synced</span>
+          <button onclick="exitAdminMode()" class="px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-slate-900 text-white">
+            Exit
+          </button>
         </div>
       </div>
 
-      <!-- Shown ONLY when Admin is unlocked -->
-      <div id="adminExitBar" class="hidden flex items-center gap-2">
-        <span id="syncIndicator" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700">Synced</span>
-        <button onclick="exitAdminMode()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition">
-          Exit Admin
-        </button>
+      <!-- Circular Sub-Heading Category Strip (Only shows categories with active products) -->
+      <div id="categoryBar" class="flex items-start gap-3 sm:gap-5 overflow-x-auto no-scrollbar pt-3 pb-1 mt-1.5 border-t border-slate-100">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Optional Sub-Category Filter Pills (Shows when sub-categories exist, including "Bed") -->
+      <div id="subCategoryBar" class="hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2 pb-0.5">
+        <!-- Populated by JS -->
       </div>
     </div>
   </header>
 
-  <!-- ==================== 1. CUSTOMER STORE VIEW ==================== -->
-  <main id="storeView" class="max-w-5xl mx-auto px-4 pt-4">
-    
-    <!-- Banner -->
-    <div class="bg-gradient-to-r from-emerald-700 to-teal-600 rounded-2xl p-4 sm:p-5 text-white mb-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div>
-        <span class="inline-block bg-white/20 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full mb-1.5">
-          VEGMAN • HYGIENIC & READY TO COOK
-        </span>
-        <h2 class="text-lg sm:text-xl font-extrabold">Order Tonight, Delivered Fresh Tomorrow Morning</h2>
-        <p class="text-xs sm:text-sm text-emerald-100 mt-0.5">Choose your weight & exact cutting style. Zero delivery fee & zero payment gateway charges.</p>
-      </div>
-      <div class="bg-white/15 backdrop-blur-sm rounded-xl px-3.5 py-2 text-xs font-semibold shrink-0">
-        <div>🕕 Morning Slot 1: 6:30 AM – 8:00 AM</div>
-        <div class="mt-1">🕗 Morning Slot 2: 8:00 AM – 10:00 AM</div>
-        <div class="mt-1 text-emerald-100">📞 Support: +91 97007 70056</div>
-      </div>
-    </div>
-
-    <!-- Search & Category Filter -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-5">
-      <input id="searchInput" type="text" oninput="renderProducts()" placeholder="Search vegetables (e.g., Bhindi, Onion, Carrot)..."
-        class="w-full sm:w-72 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-      <div id="categoryBar" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-        <!-- Categories populated by JS -->
-      </div>
-    </div>
-
-    <!-- Product Grid -->
-    <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- ==================== 1. CUSTOMER STORE VIEW (6-ITEM 2x3 GRID AT A TIME) ==================== -->
+  <main id="storeView" class="max-w-3xl mx-auto px-3 sm:px-4 pt-3">
+    <!-- 2-Column x 3-Row (6 products at a time) Grid -->
+    <div id="productGrid" class="grid grid-cols-2 gap-3 sm:gap-4">
       <!-- Products populated by JS -->
     </div>
   </main>
 
   <!-- ==================== 2. HIDDEN ADMIN PANEL VIEW ==================== -->
-  <section id="adminView" class="hidden max-w-4xl mx-auto px-4 pt-5">
-    
+  <section id="adminView" class="hidden max-w-4xl mx-auto px-4 pt-4">
+
     <!-- Two-Way Sync Control Bar -->
     <div class="bg-slate-900 text-white rounded-2xl p-4 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
       <div>
-        <h2 class="font-extrabold text-sm sm:text-base">Vegman Two-Way Admin & Google Sheet Sync</h2>
-        <p class="text-xs text-slate-300">Changes here automatically update Google Sheets, and Sheet edits sync back here.</p>
+        <h2 class="font-extrabold text-sm sm:text-base">Vegman Admin & Two-Way Google Sheet Sync</h2>
+        <p class="text-xs text-slate-300">Manage products, slots, sub-headings, sub-categories & live Google Sheet sync.</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <button onclick="pullFromGoogleSheet(true)" class="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-bold transition">
           ↓ Pull from Sheet
         </button>
-        <button onclick="pushToGoogleSheet(true)" class="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition">
+        <button onclick="pushToGoogleSheet(true)" class="px-3.5 py-2 rounded-xl instamart-blue text-white text-xs font-bold transition">
           ↑ Push to Sheet
         </button>
       </div>
     </div>
 
+    <!-- Delivery Slots ON/OFF Control -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="font-extrabold text-base text-slate-900">Delivery Slots (ON / OFF)</h2>
+          <p class="text-xs text-slate-500">Turn OFF any slot to hide it from the customer checkout page.</p>
+        </div>
+      </div>
+      <div id="adminSlotToggles" class="space-y-3">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- Sub-Heading Photo Upload & Sub-Category (including "Bed") -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mb-5">
+      <h2 class="font-extrabold text-base text-slate-900 mb-3">Sub-Heading Photo & Sub-Category Setup</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <!-- Upload Photo for Sub-Heading / Category -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+          <label class="block text-xs font-bold text-slate-700">Upload Photo for Sub-Heading (Category)</label>
+          <select id="subHeadingTargetSelect" onchange="onSubHeadingSelectChange()"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-bold">
+            <!-- Populated by JS -->
+          </select>
+          <input id="subHeadingFileInput" type="file" accept="image/*" onchange="handleSubHeadingPhotoUpload(event)"
+            class="block w-full text-xs text-slate-500 file:mr-2.5 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700" />
+          <input id="subHeadingImgUrlInput" type="url" placeholder="Image URL or upload above"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
+          <p id="subHeadingUploadStatus" class="text-[11px] font-semibold text-emerald-700"></p>
+          <button type="button" onclick="saveSubHeadingPhoto()"
+            class="w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+            Save Sub-Heading Photo
+          </button>
+        </div>
+
+        <!-- Add Sub-Category (e.g., Bed) -->
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
+          <label class="block text-xs font-bold text-slate-700">Add Sub-Category (e.g., Bed)</label>
+          <div class="flex gap-2">
+            <input id="newSubCategoryInput" type="text" placeholder="e.g., Bed"
+              class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs" />
+            <button type="button" onclick="addSubCategory()"
+              class="px-3.5 py-2 rounded-xl instamart-blue text-white text-xs font-bold shrink-0">
+              + Add
+            </button>
+          </div>
+          <div id="subCategoryChipsList" class="flex flex-wrap gap-1.5 pt-1">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-      <!-- Add New Vegetable & Custom Category -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <h2 class="font-extrabold text-base text-slate-900 mb-3">Add New Product / Category</h2>
+      <!-- Add New Product -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <h2 class="font-extrabold text-base text-slate-900 mb-3">Add New Product</h2>
         <div class="space-y-3 text-sm">
           <div class="grid grid-cols-2 gap-2">
             <div>
@@ -106,41 +165,65 @@
               <input id="newVegName" type="text" placeholder="e.g., Lady Finger" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Hindi / Local Name</label>
-              <input id="newVegHindi" type="text" placeholder="e.g., Bhindi" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              <label class="block text-xs font-bold text-slate-600 mb-1">Subtitle / Note</label>
+              <input id="newVegHindi" type="text" placeholder="e.g., Fresh Morning" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
             </div>
           </div>
+
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Category (Select or Type New) *</label>
-              <input id="newVegCat" list="categoryOptions" placeholder="e.g., Daily Veggies" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white" />
+              <label class="block text-xs font-bold text-slate-600 mb-1">Category *</label>
+              <input id="newVegCat" list="categoryOptions" placeholder="e.g., Veggies" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white" />
               <datalist id="categoryOptions">
-                <option value="Daily Veggies">
-                <option value="Leafy & Herbs">
-                <option value="Gourds & Beans">
-                <option value="Salad & Mixes">
-                <option value="Cut Fruits">
+                <option value="Veggies">
+                <option value="Fruit">
+                <option value="Milk & Dairy">
+                <option value="Breakfast Essentials">
+                <option value="Drinks & More">
               </datalist>
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-600 mb-1">Price for 250g (₹) *</label>
-              <input id="newVegPrice" type="number" placeholder="25" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+              <label class="block text-xs font-bold text-slate-600 mb-1">Sub-Category</label>
+              <input id="newVegSubCat" list="subCategoryOptions" placeholder="e.g., Bed" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white" />
+              <datalist id="subCategoryOptions"></datalist>
             </div>
           </div>
+
+          <!-- Dynamic Variant Builder -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-xs font-bold text-slate-700">Pack Sizes & Prices *</label>
+              <button type="button" onclick="addVariantRow()" class="text-[11px] font-bold instamart-blue-text bg-blue-100 px-2 py-0.5 rounded-lg">
+                + Add Size
+              </button>
+            </div>
+            <div id="variantBuilderRows" class="space-y-2">
+              <div class="flex gap-2">
+                <input type="text" placeholder="Size (e.g. 250g)" class="var-label w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+                <input type="number" placeholder="Price ₹ (e.g. 22)" class="var-price w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+              </div>
+              <div class="flex gap-2">
+                <input type="text" placeholder="Size (e.g. 500g)" class="var-label w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+                <input type="number" placeholder="Price ₹ (e.g. 42)" class="var-price w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+              </div>
+            </div>
+          </div>
+
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Upload Photo or Paste Direct Image URL</label>
-            <input id="newVegFile" type="file" accept="image/*" onchange="handlePhotoUpload(event)" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 mb-2" />
-            <input id="newVegImgUrl" type="url" placeholder="Paste https://i.ibb.co/... image link" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
+            <label class="block text-xs font-bold text-slate-600 mb-1">Upload Photo via ImgBB or Paste Direct URL</label>
+            <input id="newVegFile" type="file" accept="image/*" onchange="handlePhotoUpload(event)" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-blue-700 mb-2" />
+            <input id="newVegImgUrl" type="url" placeholder="Auto-filled on upload or paste https://i.ibb.co/..." class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
             <p id="uploadStatus" class="text-[11px] text-emerald-700 mt-1"></p>
           </div>
-          <button onclick="addNewVegetable()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition">
-            + Add & Sync to Google Sheet
+
+          <button onclick="addNewVegetable()" class="w-full py-2.5 instamart-blue hover:opacity-95 text-white font-bold rounded-xl transition">
+            + Add Product & Sync to Sheet
           </button>
         </div>
       </div>
 
-      <!-- Store & API Settings -->
-      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+      <!-- Store & Security Settings -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <h2 class="font-extrabold text-base text-slate-900 mb-3">Store & Security Settings</h2>
         <div class="space-y-3 text-sm">
           <div class="grid grid-cols-2 gap-2">
@@ -168,8 +251,8 @@
             <input id="adminScriptUrl" type="url" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Free ImgBB API Key (For Direct Camera Upload)</label>
-            <input id="adminImgbbKey" type="text" placeholder="Optional ImgBB API key" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
+            <label class="block text-xs font-bold text-slate-600 mb-1">Free ImgBB API Key</label>
+            <input id="adminImgbbKey" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
           </div>
           <button onclick="saveAdminSettings()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl transition">
             Save Store Settings
@@ -178,42 +261,85 @@
       </div>
     </div>
 
-    <!-- Manage Existing Catalog (Live Two-Way Synced) -->
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mt-5">
+    <!-- Manage Existing Catalog (Right-Side Corner ON/OFF Toggle) -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs mt-5">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="font-extrabold text-base text-slate-900">Live Catalog (Edits Auto-Sync to Google Sheet)</h2>
+        <h2 class="font-extrabold text-base text-slate-900">Product List (Right-Corner ON/OFF Hides From Store)</h2>
         <span class="text-xs text-slate-500" id="catalogCountLabel">0 items</span>
       </div>
-      <div id="adminCatalogList" class="divide-y divide-slate-100">
-        <!-- Admin items populated by JS -->
-      </div>
+      <div id="adminCatalogList" class="divide-y divide-slate-100"></div>
     </div>
   </section>
 
-  <!-- ==================== ADMIN PIN MODAL ==================== -->
+  <!-- ==================== INSTAMART QUANTITY SELECTION BOTTOM SHEET MODAL ==================== -->
+  <div id="variantPopupModal" onclick="if(event.target===this) closeVariantPopup()"
+    class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-[1px] flex flex-col justify-end sm:items-center sm:justify-center">
+
+    <div class="w-full max-w-md mx-auto flex justify-center mb-3">
+      <button onclick="closeVariantPopup()"
+        class="w-10 h-10 rounded-full bg-slate-900/90 text-white flex items-center justify-center font-bold text-base shadow-lg active:scale-95 transition">
+        ✕
+      </button>
+    </div>
+
+    <div class="bg-white w-full max-w-md mx-auto rounded-t-3xl sm:rounded-3xl p-4 sm:p-5 shadow-2xl animate-slide-up">
+      <div class="flex items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-3 min-w-0">
+          <img id="vpImg" src="" alt="" class="w-11 h-11 rounded-xl object-cover border border-slate-200 shrink-0" />
+          <div class="min-w-0">
+            <h3 id="vpTitle" class="font-extrabold text-sm sm:text-base text-slate-900 truncate">Product Name</h3>
+            <p id="vpSubtitle" class="text-[11px] text-slate-500 truncate">Fresh Delivery</p>
+          </div>
+        </div>
+        <span id="vpCategoryBadge" class="text-[11px] font-bold instamart-blue-text bg-blue-50 px-2.5 py-1 rounded-lg shrink-0">
+          Veggies
+        </span>
+      </div>
+
+      <div class="pt-3 pb-2">
+        <h4 class="font-extrabold text-sm text-slate-900">Select Quantity</h4>
+      </div>
+
+      <div id="vpVariantCards" class="flex gap-3 overflow-x-auto no-scrollbar pb-3">
+        <!-- Variant cards populated by JS -->
+      </div>
+
+      <button onclick="closeVariantPopup()"
+        class="mt-2 w-full instamart-blue hover:opacity-95 text-white px-4 py-3.5 rounded-2xl shadow-lg flex items-center justify-between font-extrabold text-sm transition">
+        <span id="vpItemTotal">Item Total: ₹0</span>
+        <span class="flex items-center gap-1">Confirm <span class="text-base leading-none">›</span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== ADMIN PIN MODAL (CLEAN BLANK INPUT) ==================== -->
   <div id="pinModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl text-center">
-      <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center mx-auto text-xl mb-3">🔒</div>
+      <div class="w-12 h-12 rounded-2xl instamart-blue text-white flex items-center justify-center mx-auto text-xl mb-3">🔒</div>
       <h3 class="font-extrabold text-lg text-slate-900">Vegman Admin Login</h3>
-      <p class="text-xs text-slate-500 mt-1 mb-4">Enter your secret owner PIN to manage catalog & prices.</p>
-      <input id="pinAttemptInput" type="password" inputmode="numeric" placeholder="Enter PIN"
+      <p class="text-xs text-slate-500 mt-1 mb-4">Enter your secret owner PIN.</p>
+      <input id="pinAttemptInput" type="password" inputmode="numeric" autocomplete="off" placeholder="Enter PIN"
         onkeydown="if(event.key==='Enter') verifyAdminPin()"
         class="w-full text-center tracking-widest font-extrabold text-lg px-4 py-2.5 rounded-xl border border-slate-300 mb-3" />
       <div class="flex gap-2">
         <button onclick="closePinModal()" class="w-1/2 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">Cancel</button>
-        <button onclick="verifyAdminPin()" class="w-1/2 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs">Unlock</button>
+        <button onclick="verifyAdminPin()" class="w-1/2 py-2.5 rounded-xl instamart-blue text-white font-bold text-xs">Unlock</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== FLOATING CART BAR ==================== -->
-  <div id="floatingCartBar" class="hidden fixed bottom-4 inset-x-4 max-w-xl mx-auto z-30">
-    <button onclick="openCheckoutModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center justify-between font-bold transition">
-      <div class="flex items-center gap-2.5">
-        <span id="cartBadgeCount" class="bg-white text-emerald-700 text-xs font-extrabold px-2.5 py-1 rounded-lg">0 Items</span>
-        <span class="text-sm">View Basket & Checkout</span>
+  <!-- ==================== FLOATING CART PILL (NO DELIVERY FEE SHOWN HERE) ==================== -->
+  <div id="floatingCartBar" class="hidden fixed bottom-4 inset-x-0 z-30 flex justify-center px-4 pointer-events-none">
+    <button onclick="openCheckoutModal()" class="pointer-events-auto instamart-blue hover:opacity-95 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-3 transition">
+      <div class="text-left leading-tight">
+        <div class="font-extrabold text-xs tracking-wide uppercase">CART</div>
+        <div id="cartBadgeCount" class="text-[10px] font-semibold text-blue-100">0 ITEMS</div>
       </div>
-      <span id="cartBadgeTotal" class="text-base font-extrabold">₹0</span>
+      <div class="h-6 w-[1px] bg-white/25"></div>
+      <div class="flex items-center gap-1.5">
+        <span id="cartBadgeTotal" class="font-extrabold text-sm">₹0</span>
+        <span class="font-extrabold text-sm">›</span>
+      </div>
     </button>
   </div>
 
@@ -221,69 +347,96 @@
   <div id="checkoutModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto p-5 shadow-2xl">
       <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-        <h3 class="font-extrabold text-lg text-slate-900">Your Vegman Basket</h3>
+        <h3 class="font-extrabold text-lg text-slate-900">Checkout</h3>
         <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold hover:bg-slate-200">✕</button>
       </div>
 
-      <div id="checkoutItemsList" class="divide-y divide-slate-100 my-3 max-h-48 overflow-y-auto"></div>
+      <!-- Cart Items -->
+      <div id="checkoutItemsList" class="divide-y divide-slate-100 my-2.5 max-h-40 overflow-y-auto"></div>
 
-      <div class="bg-slate-50 rounded-xl p-3 flex items-center justify-between font-extrabold text-base mb-4">
-        <span>Total Payable</span>
-        <span id="checkoutTotalAmount" class="text-emerald-700 text-lg">₹0</span>
-      </div>
-
-      <div class="space-y-3 text-sm mb-4">
+      <!-- Customer Details: 10-Digit Mobile Lookup + Optional GPS Button -->
+      <div class="space-y-2.5 text-sm mb-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Your Name *</label>
-            <input id="custName" type="text" placeholder="Enter full name" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Number (10 digits) *</label>
+            <input id="custPhone" type="tel" maxlength="15" oninput="handlePhoneLookup()" placeholder="Enter 10-digit mobile no."
+              class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            <p id="lookupStatus" class="text-[10px] font-semibold text-blue-700 mt-0.5"></p>
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">Mobile / WhatsApp No. *</label>
-            <input id="custPhone" type="tel" placeholder="10-digit mobile number" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+            <label class="block text-xs font-bold text-slate-700 mb-1">Your Name *</label>
+            <input id="custName" type="text" placeholder="Enter full name"
+              class="w-full px-3 py-2 rounded-xl border border-slate-300" />
           </div>
         </div>
+
         <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Complete Delivery Address *</label>
-          <textarea id="custAddress" rows="2" placeholder="House/Flat No., Building, Landmark, Area" class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-700">Delivery Address *</label>
+            <button type="button" onclick="captureOptionalGps()"
+              class="text-[11px] font-bold instamart-blue-text bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg">
+              📍 Use GPS (Optional)
+            </button>
+          </div>
+          <textarea id="custAddress" rows="2" placeholder="House/Flat No., Landmark, Area"
+            class="w-full px-3 py-2 rounded-xl border border-slate-300"></textarea>
         </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Morning Delivery Slot</label>
-          <select id="custSlot" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
-            <option value="Tomorrow 6:30 AM - 8:00 AM">Tomorrow 6:30 AM – 8:00 AM</option>
-            <option value="Tomorrow 8:00 AM - 10:00 AM">Tomorrow 8:00 AM – 10:00 AM</option>
-          </select>
+
+        <!-- Categorized Delivery Slot Selector (3 Tabs per Period, Controlled by Admin ON/OFF) -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3">
+          <label class="block text-xs font-extrabold text-slate-800 mb-2">Select Delivery Slot</label>
+          <div id="checkoutSlotContainer" class="space-y-2.5">
+            <!-- Populated by JS -->
+          </div>
         </div>
       </div>
 
+      <!-- Bill Details (Delivery Fee ₹9 below ₹99 / FREE at ₹99+ Shown Here at Checkout) -->
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 mb-4 text-xs space-y-2">
+        <div class="flex items-center justify-between text-slate-700 font-semibold">
+          <span>Item Total</span>
+          <span id="billItemTotal">₹0</span>
+        </div>
+        <div class="flex items-center justify-between font-semibold">
+          <span>Delivery Fee <span class="text-[10px] text-slate-400 font-normal">(Free on ₹99+)</span></span>
+          <span id="billDeliveryFee" class="font-extrabold">₹0</span>
+        </div>
+        <div class="border-t border-slate-200 pt-2 flex items-center justify-between font-extrabold text-sm text-slate-900">
+          <span>To Pay</span>
+          <span id="checkoutTotalAmount" class="instamart-blue-text text-base">₹0</span>
+        </div>
+      </div>
+
+      <!-- Payment Method -->
       <div class="mb-4">
-        <label class="block text-xs font-bold text-slate-700 mb-2">Select Payment Method (Zero Extra Charges)</label>
+        <label class="block text-xs font-bold text-slate-700 mb-2">Select Payment Method</label>
         <div class="grid grid-cols-2 gap-2.5">
-          <button type="button" id="payModeUpiBtn" onclick="setPaymentMode('UPI')" class="p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-left transition">
-            <div class="font-extrabold text-xs text-emerald-900">UPI QR Pay</div>
-            <div class="text-[11px] text-emerald-700">GPay / PhonePe / Paytm</div>
+          <button type="button" id="payModeUpiBtn" onclick="setPaymentMode('UPI')" class="p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left transition">
+            <div class="font-extrabold text-xs instamart-blue-text">UPI QR Pay</div>
+            <div class="text-[11px] text-slate-600">GPay / PhonePe / Paytm</div>
           </button>
           <button type="button" id="payModeCodBtn" onclick="setPaymentMode('COD')" class="p-3 rounded-xl border border-slate-200 bg-white text-left transition">
             <div class="font-extrabold text-xs text-slate-800">Cash on Delivery</div>
-            <div class="text-[11px] text-slate-500">Pay at morning doorstep</div>
+            <div class="text-[11px] text-slate-500">Pay at doorstep</div>
           </button>
         </div>
       </div>
 
-      <div id="upiQrPanel" class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 mb-4 text-center">
-        <p class="text-xs font-bold text-emerald-900 mb-1">Pay to <span class="underline">Shaik Jahangir</span> (Vegman)</p>
-        <p class="text-xs font-bold text-emerald-800 mb-2">Scan with any UPI App to Pay <span id="qrAmountLabel" class="underline">₹0</span></p>
-        <img id="upiQrImage" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-xl bg-white p-2 border border-emerald-200 shadow-xs" />
+      <!-- UPI QR Panel -->
+      <div id="upiQrPanel" class="bg-blue-50/70 border border-blue-200 rounded-2xl p-4 mb-4 text-center">
+        <p class="text-xs font-bold text-slate-900 mb-1">Pay to <span class="underline">Shaik Jahangir</span> (Vegman)</p>
+        <p class="text-xs font-bold instamart-blue-text mb-2">Scan with any UPI App to Pay <span id="qrAmountLabel" class="underline">₹0</span></p>
+        <img id="upiQrImage" src="" alt="UPI QR Code" class="w-40 h-40 mx-auto rounded-xl bg-white p-2 border border-blue-200 shadow-xs" />
         <div class="mt-2.5 flex items-center justify-center gap-2">
           <span id="displayUpiId" class="text-xs font-mono font-bold bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-slate-800">shaikjahangir149-3@oksbi</span>
-          <button type="button" onclick="copyUpiId()" class="text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-2.5 py-1 rounded-lg">Copy ID</button>
+          <button type="button" onclick="copyUpiId()" class="text-xs font-bold instamart-blue-text bg-blue-100 hover:bg-blue-200 px-2.5 py-1 rounded-lg">Copy ID</button>
         </div>
         <p class="text-[11px] text-slate-600 mt-2">
-          After completing your UPI payment, click the button below to confirm your order on WhatsApp.
+          After completing your UPI payment, tap below to send your order on WhatsApp.
         </p>
       </div>
 
-      <button id="placeOrderBtn" onclick="submitOrder()" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg text-sm transition">
+      <button id="placeOrderBtn" onclick="submitOrder()" class="w-full py-3.5 instamart-blue hover:opacity-95 text-white font-extrabold rounded-2xl shadow-lg text-sm transition">
         Place Order & Send on WhatsApp →
       </button>
     </div>
@@ -296,37 +449,96 @@
       whatsappNumber: "919700770056",
       upiId: "shaikjahangir149-3@oksbi",
       payeeName: "Shaik Jahangir",
-      adminPin: "70056", // Secret PIN to open Admin Panel
+      adminPin: "70056",
       googleScriptUrl: "https://script.google.com/macros/s/AKfycby9mVJlxVz1zWAHf7ZSJQgwQ6BeaGCj4jkT4CnldHH5fTXG-Dt7Yv5he8fSfRXp0Tft/exec",
-      imgbbApiKey: ""
+      imgbbApiKey: "5a876828974479ce43b2e7f4c76565ad"
+    };
+
+    const DEFAULT_SLOTS = [
+      {
+        group: "Morning",
+        slots: [
+          { label: "6:30 – 7:30 AM", enabled: true },
+          { label: "7:30 – 9:00 AM", enabled: true },
+          { label: "9:00 – 10:00 AM", enabled: true }
+        ]
+      },
+      {
+        group: "Afternoon",
+        slots: [
+          { label: "12:00 – 1:00 PM", enabled: true },
+          { label: "1:00 – 2:00 PM", enabled: true },
+          { label: "2:00 – 3:00 PM", enabled: true }
+        ]
+      },
+      {
+        group: "Evening / Night",
+        slots: [
+          { label: "7:00 – 8:00 PM", enabled: true },
+          { label: "8:00 – 9:00 PM", enabled: true },
+          { label: "9:00 – 10:00 PM", enabled: true }
+        ]
+      }
+    ];
+
+    const DEFAULT_CATEGORY_IMAGES = {
+      "All Items": "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=200&q=80",
+      "Veggies": "https://images.unsplash.com/photo-1597362925123-77861d3fbac7?auto=format&fit=crop&w=200&q=80",
+      "Fruit": "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=200&q=80",
+      "Milk & Dairy": "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=200&q=80",
+      "Breakfast Essentials": "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=200&q=80",
+      "Drinks & More": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=200&q=80"
     };
 
     const DEFAULT_PRODUCTS = [
-      { id: "1", name: "Lady Finger", hindi: "Bhindi", category: "Daily Veggies", price250: 22, inStock: true, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=500&q=80" },
-      { id: "2", name: "Red Onion", hindi: "Pyaz", category: "Daily Veggies", price250: 18, inStock: true, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=500&q=80" },
-      { id: "3", name: "Carrot", hindi: "Gajar", category: "Daily Veggies", price250: 20, inStock: true, image: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=500&q=80" },
-      { id: "4", name: "French Beans", hindi: "Fansi", category: "Gourds & Beans", price250: 28, inStock: true, image: "https://images.unsplash.com/photo-1567375698348-5d9d5ae99de0?auto=format&fit=crop&w=500&q=80" },
-      { id: "5", name: "Bottle Gourd", hindi: "Lauki / Dudhi", category: "Gourds & Beans", price250: 16, inStock: true, image: "https://images.unsplash.com/photo-1590779033100-9f60a05a013d?auto=format&fit=crop&w=500&q=80" },
-      { id: "6", name: "Fresh Spinach", hindi: "Palak (Cleaned)", category: "Leafy & Herbs", price250: 15, inStock: true, image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=500&q=80" }
-    ];
-
-    const CUT_STYLES = ["Fine Chopped", "Medium Cubes", "Thin Sliced", "Julienne / Strips"];
-    const WEIGHT_OPTIONS = [
-      { label: "250g", multiplier: 1 },
-      { label: "500g", multiplier: 2 },
-      { label: "1kg", multiplier: 4 }
+      { id: "1", name: "Lady Finger (Bhindi)", hindi: "Fresh Morning", category: "Veggies", subCategory: "Bed", variants: "250g:22, 500g:42", enabled: true, image: "https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?auto=format&fit=crop&w=400&q=80" },
+      { id: "2", name: "Red Onion (Pyaz)", hindi: "Fresh Morning", category: "Veggies", subCategory: "Bed", variants: "250g:18, 500g:35", enabled: true, image: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&w=400&q=80" },
+      { id: "3", name: "Tomato (Tamatar)", hindi: "Farm Fresh", category: "Veggies", subCategory: "", variants: "250g:15, 500g:28", enabled: true, image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80" },
+      { id: "4", name: "Potato (Aloo)", hindi: "Daily Essential", category: "Veggies", subCategory: "", variants: "500g:20, 1kg:38", enabled: true, image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=400&q=80" },
+      { id: "5", name: "Fresh Cow Milk", hindi: "Morning Pouch", category: "Milk & Dairy", subCategory: "", variants: "500ml:30, 1 Litre:58", enabled: true, image: "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=400&q=80" },
+      { id: "6", name: "Farm Fresh Eggs", hindi: "White Eggs", category: "Breakfast Essentials", subCategory: "", variants: "6 Pcs:45, 12 Pcs:85", enabled: true, image: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=400&q=80" }
     ];
 
     let savedSettings = JSON.parse(localStorage.getItem("vegman_settings")) || {};
     let settings = { ...DEFAULT_SETTINGS, ...savedSettings };
     if (!settings.googleScriptUrl) settings.googleScriptUrl = DEFAULT_SETTINGS.googleScriptUrl;
+    if (!settings.imgbbApiKey) settings.imgbbApiKey = DEFAULT_SETTINGS.imgbbApiKey;
 
+    let slotGroups = JSON.parse(localStorage.getItem("vegman_slots")) || JSON.parse(JSON.stringify(DEFAULT_SLOTS));
+    let categoryImages = { ...DEFAULT_CATEGORY_IMAGES, ...(JSON.parse(localStorage.getItem("vegman_cat_images")) || {}) };
+    let subCategories = JSON.parse(localStorage.getItem("vegman_subcategories")) || ["Bed"];
     let products = JSON.parse(localStorage.getItem("vegman_products")) || [...DEFAULT_PRODUCTS];
+
+    let selectedVariantIdx = {};
+    let activePopupProductId = null;
     let cart = [];
-    let selectedCategory = "All";
+    let selectedCategory = "All Items";
+    let selectedSubCategory = "All";
+    let selectedDeliverySlot = "";
     let paymentMode = "UPI";
     let logoTapCount = 0;
     let logoTapTimer = null;
+    let lastLookupPhone = "";
+
+    function parseVariants(str) {
+      if (!str) return [{ label: "1 Pack", price: 20 }];
+      return String(str).split(",").map(part => {
+        const [lbl, prc] = part.split(":");
+        return {
+          label: (lbl || "Standard").trim(),
+          price: Number((prc || "20").trim()) || 20
+        };
+      }).filter(v => v.label);
+    }
+
+    function getFirstEnabledSlot() {
+      for (const grp of slotGroups) {
+        for (const s of grp.slots) {
+          if (s.enabled) return `${grp.group} (${s.label})`;
+        }
+      }
+      return "Morning (6:30 – 7:30 AM)";
+    }
 
     // ==================== SECRET ADMIN ACCESS ====================
     function handleSecretLogoTap() {
@@ -340,9 +552,10 @@
     }
 
     function openPinModal() {
-      document.getElementById("pinAttemptInput").value = "";
+      const inp = document.getElementById("pinAttemptInput");
+      inp.value = "";
       document.getElementById("pinModal").classList.remove("hidden");
-      setTimeout(() => document.getElementById("pinAttemptInput").focus(), 100);
+      setTimeout(() => inp.focus(), 100);
     }
 
     function closePinModal() {
@@ -364,6 +577,9 @@
       document.getElementById("storeView").classList.add("hidden");
       document.getElementById("adminView").classList.remove("hidden");
       document.getElementById("adminExitBar").classList.remove("hidden");
+      renderAdminSlotToggles();
+      renderSubHeadingManager();
+      renderAdminCatalog();
       pullFromGoogleSheet(false);
     }
 
@@ -386,9 +602,13 @@
         const data = await res.json();
         if (data.status === "success" && Array.isArray(data.catalog)) {
           if (data.catalog.length > 0) {
-            products = data.catalog;
+            products = data.catalog.map(item => ({
+              ...item,
+              enabled: item.enabled !== undefined ? Boolean(item.enabled) : (item.inStock !== false)
+            }));
             localStorage.setItem("vegman_products", JSON.stringify(products));
             renderCategories();
+            renderSubCategories();
             renderProducts();
             renderAdminCatalog();
             setSyncStatus("Synced ✓");
@@ -399,14 +619,13 @@
         }
       } catch (err) {
         console.error("Pull error:", err);
-        setSyncStatus("Offline Mode");
-        if (showAlert) alert("Could not reach Google Sheet. Check your internet or Apps Script URL.");
+        setSyncStatus("Offline");
       }
     }
 
     async function pushToGoogleSheet(showAlert = false) {
       if (!settings.googleScriptUrl) return;
-      setSyncStatus("Saving to Sheet...");
+      setSyncStatus("Saving...");
       try {
         await fetch(settings.googleScriptUrl, {
           method: "POST",
@@ -414,15 +633,13 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             action: "sync_catalog",
-            catalog: products
+            catalog: products.map(p => ({ ...p, inStock: p.enabled !== false }))
           })
         });
         setSyncStatus("Synced ✓");
-        if (showAlert) alert("All products & categories pushed to Google Sheet!");
+        if (showAlert) alert("Pushed to Google Sheet!");
       } catch (err) {
-        console.error("Push error:", err);
         setSyncStatus("Sync Failed");
-        if (showAlert) alert("Failed to sync with Google Sheet.");
       }
     }
 
@@ -433,18 +650,21 @@
 
     // ==================== INITIALIZATION ====================
     async function init() {
+      selectedDeliverySlot = getFirstEnabledSlot();
       applySettingsToUI();
+      loadSavedCustomerLocal();
       renderCategories();
+      renderSubCategories();
       renderProducts();
+      renderCheckoutSlots();
+      renderAdminSlotToggles();
+      renderSubHeadingManager();
       renderAdminCatalog();
 
       const params = new URLSearchParams(window.location.search);
       if (params.get("admin") === "1") {
-        if (sessionStorage.getItem("vegman_admin_unlocked") === "1") {
-          enterAdminMode();
-        } else {
-          openPinModal();
-        }
+        if (sessionStorage.getItem("vegman_admin_unlocked") === "1") enterAdminMode();
+        else openPinModal();
       }
 
       await pullFromGoogleSheet(false);
@@ -452,7 +672,7 @@
 
     function applySettingsToUI() {
       document.getElementById("headerStoreName").textContent = settings.storeName;
-      document.title = settings.storeName + " — Fresh-Cut Vegetables";
+      document.title = settings.storeName + " — Fresh-Cut Vegetables & Daily Essentials";
       document.getElementById("adminStoreName").value = settings.storeName;
       document.getElementById("adminPinInput").value = settings.adminPin;
       document.getElementById("adminWhatsapp").value = settings.whatsappNumber;
@@ -462,31 +682,284 @@
       document.getElementById("displayUpiId").textContent = settings.upiId;
     }
 
+    // ==================== MOBILE NUMBER AUTO-FILL + OPTIONAL GPS ====================
+    function loadSavedCustomerLocal() {
+      const saved = JSON.parse(localStorage.getItem("vegman_customer") || "null");
+      if (!saved) return;
+      if (saved.phone) {
+        document.getElementById("custPhone").value = saved.phone;
+        lastLookupPhone = saved.phone;
+      }
+      if (saved.name) document.getElementById("custName").value = saved.name;
+      if (saved.address) document.getElementById("custAddress").value = saved.address;
+      if (saved.name || saved.address) {
+        document.getElementById("lookupStatus").textContent = "Saved details loaded";
+      }
+    }
+
+    async function handlePhoneLookup() {
+      const raw = document.getElementById("custPhone").value.replace(/\D/g, "");
+      const phone10 = raw.length >= 10 ? raw.slice(-10) : "";
+      const statusEl = document.getElementById("lookupStatus");
+
+      if (!phone10 || phone10 === lastLookupPhone) return;
+      lastLookupPhone = phone10;
+
+      // Check local customer cache first
+      const saved = JSON.parse(localStorage.getItem("vegman_customer") || "null");
+      if (saved && String(saved.phone || "").replace(/\D/g, "").slice(-10) === phone10) {
+        if (saved.name && !document.getElementById("custName").value.trim()) {
+          document.getElementById("custName").value = saved.name;
+        }
+        if (saved.address && !document.getElementById("custAddress").value.trim()) {
+          document.getElementById("custAddress").value = saved.address;
+        }
+        statusEl.textContent = "Found saved details ✓";
+        return;
+      }
+
+      if (!settings.googleScriptUrl) return;
+      statusEl.textContent = "Checking number...";
+
+      try {
+        const url = `${settings.googleScriptUrl}?action=lookup_customer&phone=${encodeURIComponent(phone10)}&t=${Date.now()}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.status === "found") {
+          if (data.name) document.getElementById("custName").value = data.name;
+          if (data.address) document.getElementById("custAddress").value = data.address;
+          localStorage.setItem("vegman_customer", JSON.stringify({
+            phone: phone10,
+            name: data.name || document.getElementById("custName").value,
+            address: data.address || document.getElementById("custAddress").value
+          }));
+          statusEl.textContent = "Address auto-filled from records ✓";
+        } else {
+          statusEl.textContent = "";
+        }
+      } catch (err) {
+        statusEl.textContent = "";
+      }
+    }
+
+    function captureOptionalGps() {
+      const statusEl = document.getElementById("lookupStatus");
+      if (!navigator.geolocation) {
+        alert("GPS is not supported on this device.");
+        return;
+      }
+      statusEl.textContent = "Fetching GPS location...";
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude } = pos.coords;
+          try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
+            const j = await r.json();
+            const addr = j.display_name || `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`;
+            document.getElementById("custAddress").value = addr;
+            statusEl.textContent = "GPS address filled ✓";
+          } catch (e) {
+            document.getElementById("custAddress").value = `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`;
+            statusEl.textContent = "GPS coordinates filled ✓";
+          }
+        },
+        () => {
+          statusEl.textContent = "GPS skipped / denied — enter address manually";
+        },
+        { timeout: 8000 }
+      );
+    }
+
+    // ==================== CIRCULAR CATEGORY & SUB-CATEGORY STRIPS ====================
     function renderCategories() {
-      const cats = ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
       const bar = document.getElementById("categoryBar");
-      bar.innerHTML = cats.map(cat => `
-        <button onclick="selectCategory('${cat.replace(/'/g, "\\'")}')"
-          class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap border transition ${
-            selectedCategory === cat
-              ? "bg-emerald-600 text-white border-emerald-600"
-              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-          }">
-          ${cat}
-        </button>
-      `).join("");
+      const activeProducts = products.filter(p => p.enabled !== false);
+      if (activeProducts.length === 0) {
+        bar.innerHTML = "";
+        return;
+      }
+
+      const activeCategoryKeys = [...new Set(activeProducts.map(p => p.category).filter(Boolean))];
+      if (selectedCategory !== "All Items" && !activeCategoryKeys.includes(selectedCategory)) {
+        selectedCategory = "All Items";
+      }
+
+      const orderedKeys = ["All Items", ...activeCategoryKeys];
+
+      bar.innerHTML = orderedKeys.map(catKey => {
+        const firstProdInCat = activeProducts.find(p => p.category === catKey && p.image);
+        const thumbUrl = categoryImages[catKey] || (firstProdInCat ? firstProdInCat.image : DEFAULT_CATEGORY_IMAGES["All Items"]);
+        const isActive = selectedCategory === catKey;
+
+        return `
+          <button onclick="selectCategory('${catKey.replace(/'/g, "\\'")}')"
+            class="flex flex-col items-center w-16 sm:w-20 shrink-0 group focus:outline-none">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-100/90 p-1 flex items-center justify-center overflow-hidden border-2 transition ${
+              isActive ? "instamart-blue-border bg-blue-50/40 shadow-xs" : "border-transparent group-hover:bg-slate-200/70"
+            }">
+              <img src="${thumbUrl}" alt="${catKey}" class="w-full h-full object-cover rounded-full" />
+            </div>
+            <span class="mt-1.5 text-[11px] leading-tight text-center line-clamp-2 transition ${
+              isActive ? "font-extrabold instamart-blue-text" : "font-medium text-slate-600 group-hover:text-slate-900"
+            }">
+              ${catKey}
+            </span>
+          </button>
+        `;
+      }).join("");
 
       const dataList = document.getElementById("categoryOptions");
       if (dataList) {
-        const allCats = [...new Set(["Daily Veggies", "Leafy & Herbs", "Gourds & Beans", "Salad & Mixes", ...cats.filter(c => c !== "All")])];
+        const allCats = [...new Set(["Veggies", "Fruit", "Milk & Dairy", "Breakfast Essentials", "Drinks & More", ...activeCategoryKeys])];
         dataList.innerHTML = allCats.map(c => `<option value="${c}">`).join("");
       }
     }
 
     function selectCategory(cat) {
       selectedCategory = cat;
+      selectedSubCategory = "All";
       renderCategories();
+      renderSubCategories();
       renderProducts();
+    }
+
+    function renderSubCategories() {
+      const bar = document.getElementById("subCategoryBar");
+      const activeProducts = products.filter(p => p.enabled !== false && (selectedCategory === "All Items" || p.category === selectedCategory));
+      const prodSubCats = activeProducts.map(p => (p.subCategory || "").trim()).filter(Boolean);
+      const list = [...new Set([...subCategories, ...prodSubCats])].filter(Boolean);
+
+      const subListEl = document.getElementById("subCategoryOptions");
+      if (subListEl) {
+        subListEl.innerHTML = list.map(sc => `<option value="${sc}">`).join("");
+      }
+
+      if (list.length === 0) {
+        bar.classList.add("hidden");
+        bar.innerHTML = "";
+        return;
+      }
+
+      bar.classList.remove("hidden");
+      const pills = ["All", ...list];
+      bar.innerHTML = pills.map(sc => {
+        const active = selectedSubCategory === sc;
+        return `
+          <button onclick="selectSubCategory('${sc.replace(/'/g, "\\'")}')"
+            class="px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 border transition ${
+              active
+                ? "instamart-blue text-white border-transparent"
+                : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+            }">
+            ${sc}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function selectSubCategory(sc) {
+      selectedSubCategory = sc;
+      renderSubCategories();
+      renderProducts();
+    }
+
+    // ==================== QUANTITY POPUP MODAL ====================
+    function handleCardAction(productId) {
+      const product = products.find(p => String(p.id) === String(productId));
+      if (!product || product.enabled === false) return;
+      const vars = parseVariants(product.variants);
+      if (vars.length > 1) openVariantPopup(productId);
+      else addToCart(productId);
+    }
+
+    function openVariantPopup(productId) {
+      activePopupProductId = productId;
+      renderVariantPopup();
+      document.getElementById("variantPopupModal").classList.remove("hidden");
+    }
+
+    function closeVariantPopup() {
+      activePopupProductId = null;
+      document.getElementById("variantPopupModal").classList.add("hidden");
+      renderProducts();
+    }
+
+    function adjustVariantQtyInPopup(productId, vIdx, delta) {
+      const product = products.find(p => String(p.id) === String(productId));
+      const vars = parseVariants(product.variants);
+      const chosenVar = vars[vIdx];
+
+      const existingIdx = cart.findIndex(item =>
+        String(item.id) === String(productId) && item.weight === chosenVar.label
+      );
+
+      if (existingIdx > -1) {
+        cart[existingIdx].qty += delta;
+        if (cart[existingIdx].qty <= 0) cart.splice(existingIdx, 1);
+      } else if (delta > 0) {
+        cart.push({
+          id: product.id,
+          name: product.name,
+          weight: chosenVar.label,
+          unitPrice: chosenVar.price,
+          qty: 1
+        });
+      }
+
+      updateCartUI();
+      renderVariantPopup();
+      renderProducts();
+    }
+
+    function renderVariantPopup() {
+      if (!activePopupProductId) return;
+      const product = products.find(p => String(p.id) === String(activePopupProductId));
+      if (!product) return;
+
+      const vars = parseVariants(product.variants);
+      document.getElementById("vpImg").src = product.image || "https://via.placeholder.com/150?text=Vegman";
+      document.getElementById("vpTitle").textContent = product.name;
+      document.getElementById("vpSubtitle").textContent = product.hindi || "Fresh Delivery";
+      document.getElementById("vpCategoryBadge").textContent = product.category;
+
+      let productTotalInCart = 0;
+
+      document.getElementById("vpVariantCards").innerHTML = vars.map((v, vIdx) => {
+        const found = cart.find(i => String(i.id) === String(product.id) && i.weight === v.label);
+        const qtyInCart = found ? found.qty : 0;
+        productTotalInCart += qtyInCart * v.price;
+
+        return `
+          <div class="w-36 shrink-0 rounded-2xl border ${qtyInCart > 0 ? 'instamart-blue-border bg-blue-50/20' : 'border-slate-200 bg-white'} p-2.5 flex flex-col justify-between shadow-2xs">
+            <div class="relative aspect-square w-full rounded-xl bg-slate-50 overflow-hidden mb-2">
+              <img src="${product.image || 'https://via.placeholder.com/200?text=Vegman'}" alt="${v.label}" class="w-full h-full object-cover" />
+              ${qtyInCart === 0 ? `
+                <button onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)"
+                  class="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-md flex items-center justify-center instamart-blue-text font-extrabold text-xl leading-none active:scale-95 transition">
+                  +
+                </button>
+              ` : `
+                <div class="absolute bottom-1.5 right-1.5 h-8 px-1.5 rounded-xl bg-white border instamart-blue-border shadow-md flex items-center gap-2 instamart-blue-text font-extrabold text-xs">
+                  <button onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, -1)" class="px-1 text-sm">−</button>
+                  <span>${qtyInCart}</span>
+                  <button onclick="adjustVariantQtyInPopup('${product.id}', ${vIdx}, 1)" class="px-1 text-sm">+</button>
+                </div>
+              `}
+            </div>
+            <div>
+              <div class="font-extrabold text-xs text-slate-900">${v.label}</div>
+              <div class="font-extrabold text-sm text-slate-900 mt-0.5">₹${v.price}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      document.getElementById("vpItemTotal").textContent = `Item Total: ₹${productTotalInCart}`;
+    }
+
+    // ==================== 6-ITEM (2x3) STOREFRONT GRID ====================
+    function getTotalProductQtyInCart(id) {
+      return cart.filter(i => String(i.id) === String(id)).reduce((sum, i) => sum + i.qty, 0);
     }
 
     function renderProducts() {
@@ -494,109 +967,197 @@
       const grid = document.getElementById("productGrid");
 
       const filtered = products.filter(p => {
-        const matchesCat = selectedCategory === "All" || p.category === selectedCategory;
-        const matchesQuery = p.name.toLowerCase().includes(query) || (p.hindi && p.hindi.toLowerCase().includes(query));
-        return matchesCat && matchesQuery;
+        if (p.enabled === false) return false;
+        const matchesCat = selectedCategory === "All Items" || p.category === selectedCategory;
+        const matchesSub = selectedSubCategory === "All" || (p.subCategory || "").trim() === selectedSubCategory;
+        const matchesQuery = p.name.toLowerCase().includes(query) ||
+          (p.hindi && p.hindi.toLowerCase().includes(query)) ||
+          (p.subCategory && p.subCategory.toLowerCase().includes(query));
+        return matchesCat && matchesSub && matchesQuery;
       });
 
-      grid.innerHTML = filtered.map(p => `
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between ${!p.inStock ? 'opacity-60' : ''}">
-          <div>
-            <div class="relative h-40 bg-slate-100">
-              <img src="${p.image || 'https://via.placeholder.com/400x250?text=Vegman+Fresh'}" alt="${p.name}" class="w-full h-full object-cover" />
-              <span class="absolute top-2.5 left-2.5 bg-white/95 text-slate-800 text-[10px] font-extrabold px-2.5 py-1 rounded-lg shadow-xs">
-                ${p.category}
-              </span>
-              ${!p.inStock ? `<span class="absolute inset-0 bg-slate-900/50 text-white font-extrabold text-sm flex items-center justify-center">OUT OF STOCK</span>` : ''}
-            </div>
-            <div class="p-4">
-              <div class="flex items-start justify-between gap-2">
-                <div>
-                  <h3 class="font-extrabold text-base text-slate-900">${p.name}</h3>
-                  <p class="text-xs text-slate-500">${p.hindi || ''}</p>
-                </div>
-                <div class="text-right">
-                  <span id="priceTag-${p.id}" class="font-extrabold text-base text-emerald-700">₹${p.price250}</span>
-                  <span class="block text-[10px] text-slate-400">Cut & Cleaned</span>
-                </div>
-              </div>
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-2 text-center py-10 text-xs font-semibold text-slate-500">No items available right now.</div>`;
+        return;
+      }
 
-              <div class="mt-3">
-                <label class="block text-[11px] font-bold text-slate-500 mb-1">Select Weight</label>
-                <select id="weight-${p.id}" onchange="updateCardPrice('${p.id}', ${p.price250})" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold bg-slate-50">
-                  ${WEIGHT_OPTIONS.map(w => `<option value="${w.multiplier}">${w.label} — ₹${p.price250 * w.multiplier}</option>`).join("")}
-                </select>
-              </div>
+      grid.innerHTML = filtered.map(p => {
+        const vars = parseVariants(p.variants);
+        const hasMultipleVariants = vars.length > 1;
+        const activeIdx = Math.min(selectedVariantIdx[p.id] || 0, vars.length - 1);
+        const activeVar = vars[activeIdx];
+        const totalProdQty = getTotalProductQtyInCart(p.id);
 
-              <div class="mt-2.5">
-                <label class="block text-[11px] font-bold text-slate-500 mb-1">Cutting Style</label>
-                <select id="cut-${p.id}" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold bg-slate-50">
-                  ${CUT_STYLES.map(c => `<option value="${c}">${c}</option>`).join("")}
-                </select>
+        return `
+        <div class="flex flex-col bg-white rounded-2xl border border-slate-100 p-2 shadow-2xs">
+          <div onclick="${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
+            class="relative aspect-square w-full rounded-xl bg-slate-50 border border-slate-200/70 overflow-hidden mb-2 ${hasMultipleVariants ? 'cursor-pointer' : ''}">
+            <img src="${p.image || 'https://via.placeholder.com/300x300?text=Vegman'}" alt="${p.name}"
+              class="w-full h-full object-cover" />
+
+            <span class="absolute bottom-1.5 left-1.5 w-3.5 h-3.5 bg-white rounded-xs border border-emerald-600 flex items-center justify-center">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            </span>
+
+            ${totalProdQty === 0 ? `
+              <button onclick="event.stopPropagation(); handleCardAction('${p.id}')"
+                class="absolute bottom-1.5 right-1.5 w-8 h-8 rounded-xl bg-white border border-slate-200 shadow-md flex items-center justify-center instamart-blue-text font-extrabold text-xl leading-none active:scale-95 transition">
+                +
+              </button>
+            ` : `
+              <div onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
+                class="absolute bottom-1.5 right-1.5 h-8 px-1.5 rounded-xl bg-white border instamart-blue-border shadow-md flex items-center gap-2 instamart-blue-text font-extrabold text-xs cursor-pointer">
+                <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', -1)`}" class="px-1 text-sm">−</button>
+                <span>${totalProdQty}</span>
+                <button onclick="event.stopPropagation(); ${hasMultipleVariants ? `openVariantPopup('${p.id}')` : `adjustProductQty('${p.id}', 1)`}" class="px-1 text-sm">+</button>
               </div>
-            </div>
+            `}
           </div>
 
-          <div class="px-4 pb-4">
-            <button ${!p.inStock ? 'disabled' : ''} onclick="addToCart('${p.id}')"
-              class="w-full py-2.5 rounded-xl font-bold text-xs transition ${
-                p.inStock
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
-                  : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-              }">
-              ${p.inStock ? '+ Add to Basket' : 'Unavailable'}
-            </button>
+          <div class="flex flex-wrap gap-1 mb-1">
+            ${vars.map((v, idx) => `
+              <button type="button" onclick="${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
+                class="px-2 py-0.5 rounded-md text-[10px] font-bold border transition ${
+                  idx === activeIdx
+                    ? 'instamart-blue-border instamart-blue-text bg-blue-50/70'
+                    : 'border-slate-200 text-slate-500 bg-white'
+                }">
+                ${v.label}
+              </button>
+            `).join("")}
           </div>
+
+          <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
+            <span class="font-extrabold text-sm text-slate-900">₹${activeVar.price}</span>
+            ${p.subCategory ? `<span class="instamart-lime text-slate-950 font-extrabold text-[9px] px-1.5 py-0.5 rounded">${p.subCategory}</span>` : ''}
+          </div>
+
+          <h3 onclick="${hasMultipleVariants ? `openVariantPopup('${p.id}')` : ''}"
+            class="font-semibold text-xs text-slate-800 leading-snug line-clamp-2 ${hasMultipleVariants ? 'cursor-pointer' : ''}">
+            ${p.name}${p.hindi ? ' • ' + p.hindi : ''}
+          </h3>
         </div>
-      `).join("");
-    }
-
-    function updateCardPrice(id, basePrice) {
-      const mult = Number(document.getElementById(`weight-${id}`).value);
-      document.getElementById(`priceTag-${id}`).textContent = `₹${basePrice * mult}`;
+      `}).join("");
     }
 
     function addToCart(id) {
       const product = products.find(p => String(p.id) === String(id));
-      const mult = Number(document.getElementById(`weight-${id}`).value);
-      const weightLabel = WEIGHT_OPTIONS.find(w => w.multiplier === mult).label;
-      const cutStyle = document.getElementById(`cut-${id}`).value;
-      const price = product.price250 * mult;
+      const vars = parseVariants(product.variants);
+      const activeIdx = Math.min(selectedVariantIdx[id] || 0, vars.length - 1);
+      const chosenVar = vars[activeIdx];
 
-      const existing = cart.find(item => String(item.id) === String(id) && item.weight === weightLabel && item.cut === cutStyle);
-      if (existing) {
-        existing.qty += 1;
-      } else {
+      const existing = cart.find(item => String(item.id) === String(id) && item.weight === chosenVar.label);
+      if (existing) existing.qty += 1;
+      else {
         cart.push({
           id: product.id,
           name: product.name,
-          weight: weightLabel,
-          cut: cutStyle,
-          unitPrice: price,
+          weight: chosenVar.label,
+          unitPrice: chosenVar.price,
           qty: 1
         });
       }
       updateCartUI();
+      renderProducts();
+    }
+
+    function adjustProductQty(id, delta) {
+      const product = products.find(p => String(p.id) === String(id));
+      const vars = parseVariants(product.variants);
+      const activeIdx = Math.min(selectedVariantIdx[id] || 0, vars.length - 1);
+      const chosenVar = vars[activeIdx];
+
+      const idx = cart.findIndex(item => String(item.id) === String(id) && item.weight === chosenVar.label);
+      if (idx > -1) {
+        cart[idx].qty += delta;
+        if (cart[idx].qty <= 0) cart.splice(idx, 1);
+        updateCartUI();
+        renderProducts();
+      }
+    }
+
+    // ==================== CHECKOUT, SLOTS & ₹99 FREE DELIVERY / ₹9 FEE ====================
+    function renderCheckoutSlots() {
+      const container = document.getElementById("checkoutSlotContainer");
+      const enabledSlotsList = [];
+
+      const html = slotGroups.map((grp, gIdx) => {
+        const buttonsHtml = grp.slots.map((s, sIdx) => {
+          if (!s.enabled) return "";
+          const fullVal = `${grp.group} (${s.label})`;
+          enabledSlotsList.push(fullVal);
+          const isSelected = selectedDeliverySlot === fullVal;
+          return `
+            <button type="button" onclick="selectDeliverySlot('${fullVal.replace(/'/g, "\\'")}')"
+              class="px-2 py-1.5 rounded-lg text-[10px] font-bold border text-center transition ${
+                isSelected
+                  ? "instamart-blue text-white border-transparent shadow-2xs"
+                  : "bg-white text-slate-700 border-slate-200 hover:border-blue-300"
+              }">
+              ${s.label}
+            </button>
+          `;
+        }).filter(Boolean).join("");
+
+        if (!buttonsHtml) return "";
+
+        return `
+          <div>
+            <div class="text-[11px] font-bold text-slate-600 mb-1">${grp.group}</div>
+            <div class="grid grid-cols-3 gap-1.5">
+              ${buttonsHtml}
+            </div>
+          </div>
+        `;
+      }).filter(Boolean).join("");
+
+      if (enabledSlotsList.length > 0 && !enabledSlotsList.includes(selectedDeliverySlot)) {
+        selectedDeliverySlot = enabledSlotsList[0];
+      }
+
+      container.innerHTML = html || `<div class="text-xs text-slate-500">No slots currently active.</div>`;
+    }
+
+    function selectDeliverySlot(slotVal) {
+      selectedDeliverySlot = slotVal;
+      renderCheckoutSlots();
     }
 
     function updateCartUI() {
       const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
-      const totalAmount = cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
+      const itemTotal = cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
+      const deliveryFee = itemTotal === 0 ? 0 : (itemTotal >= 99 ? 0 : 9);
+      const payableTotal = itemTotal + deliveryFee;
 
       const bar = document.getElementById("floatingCartBar");
       bar.classList.toggle("hidden", totalItems === 0);
-      document.getElementById("cartBadgeCount").textContent = `${totalItems} Item${totalItems > 1 ? 's' : ''}`;
-      document.getElementById("cartBadgeTotal").textContent = `₹${totalAmount}`;
-      document.getElementById("checkoutTotalAmount").textContent = `₹${totalAmount}`;
-      document.getElementById("qrAmountLabel").textContent = `₹${totalAmount}`;
+      document.getElementById("cartBadgeCount").textContent = `${totalItems} ITEM${totalItems > 1 ? 'S' : ''}`;
+      document.getElementById("cartBadgeTotal").textContent = `₹${itemTotal}`;
+
+      document.getElementById("billItemTotal").textContent = `₹${itemTotal}`;
+      const feeEl = document.getElementById("billDeliveryFee");
+      if (itemTotal === 0) {
+        feeEl.textContent = "₹0";
+        feeEl.className = "font-extrabold text-slate-700";
+      } else if (deliveryFee === 0) {
+        feeEl.textContent = "FREE";
+        feeEl.className = "font-extrabold text-emerald-700";
+      } else {
+        feeEl.textContent = `₹${deliveryFee}`;
+        feeEl.className = "font-extrabold text-slate-900";
+      }
+
+      document.getElementById("checkoutTotalAmount").textContent = `₹${payableTotal}`;
+      document.getElementById("qrAmountLabel").textContent = `₹${payableTotal}`;
 
       const payee = settings.payeeName || settings.storeName;
-      const upiUri = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(payee)}&am=${totalAmount}&cu=INR`;
+      const upiUri = `upi://pay?pa=${encodeURIComponent(settings.upiId)}&pn=${encodeURIComponent(payee)}&am=${payableTotal}&cu=INR`;
       document.getElementById("upiQrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUri)}`;
     }
 
     function openCheckoutModal() {
       renderCheckoutItems();
+      renderCheckoutSlots();
       updateCartUI();
       document.getElementById("checkoutModal").classList.remove("hidden");
     }
@@ -608,10 +1169,10 @@
     function renderCheckoutItems() {
       const container = document.getElementById("checkoutItemsList");
       container.innerHTML = cart.map((item, idx) => `
-        <div class="py-2.5 flex items-center justify-between gap-2 text-xs">
+        <div class="py-2 flex items-center justify-between gap-2 text-xs">
           <div>
             <div class="font-bold text-slate-900">${item.name} (${item.weight})</div>
-            <div class="text-slate-500">Cut: ${item.cut} • ₹${item.unitPrice} each</div>
+            <div class="text-slate-500">₹${item.unitPrice} each</div>
           </div>
           <div class="flex items-center gap-2">
             <button onclick="changeQty(${idx}, -1)" class="w-6 h-6 rounded-lg bg-slate-100 font-bold">-</button>
@@ -626,6 +1187,7 @@
       cart[idx].qty += delta;
       if (cart[idx].qty <= 0) cart.splice(idx, 1);
       updateCartUI();
+      renderProducts();
       if (cart.length === 0) closeCheckoutModal();
       else renderCheckoutItems();
     }
@@ -635,10 +1197,10 @@
       const isUpi = mode === "UPI";
       document.getElementById("upiQrPanel").classList.toggle("hidden", !isUpi);
       document.getElementById("payModeUpiBtn").className = isUpi
-        ? "p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-left transition"
+        ? "p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left transition"
         : "p-3 rounded-xl border border-slate-200 bg-white text-left transition";
       document.getElementById("payModeCodBtn").className = !isUpi
-        ? "p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-left transition"
+        ? "p-3 rounded-xl border-2 instamart-blue-border bg-blue-50 text-left transition"
         : "p-3 rounded-xl border border-slate-200 bg-white text-left transition";
     }
 
@@ -648,23 +1210,33 @@
     }
 
     async function submitOrder() {
-      const name = document.getElementById("custName").value.trim();
       const phone = document.getElementById("custPhone").value.trim();
+      const name = document.getElementById("custName").value.trim();
       const address = document.getElementById("custAddress").value.trim();
-      const slot = document.getElementById("custSlot").value;
+      const slot = selectedDeliverySlot || getFirstEnabledSlot();
 
-      if (!name || !phone || !address) {
-        alert("Please fill in your Name, Mobile Number, and Delivery Address.");
+      if (!phone || !name || !address) {
+        alert("Please enter your Mobile Number, Name, and Delivery Address.");
         return;
       }
+
+      // Save customer locally for instant next-time auto-fill
+      const phone10 = phone.replace(/\D/g, "").slice(-10) || phone;
+      localStorage.setItem("vegman_customer", JSON.stringify({
+        phone: phone10,
+        name,
+        address
+      }));
 
       const btn = document.getElementById("placeOrderBtn");
       btn.disabled = true;
       btn.textContent = "Saving Order...";
 
       const orderId = "VEG-" + Math.floor(100000 + Math.random() * 900000);
-      const total = cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
-      const itemsSummary = cart.map(i => `${i.name} (${i.weight}, ${i.cut}) x${i.qty} = ₹${i.unitPrice * i.qty}`).join(" | ");
+      const itemTotal = cart.reduce((sum, i) => sum + (i.unitPrice * i.qty), 0);
+      const deliveryFee = itemTotal >= 99 ? 0 : 9;
+      const total = itemTotal + deliveryFee;
+      const itemsSummary = cart.map(i => `${i.name} (${i.weight}) x${i.qty} = ₹${i.unitPrice * i.qty}`).join(" | ");
 
       if (settings.googleScriptUrl) {
         try {
@@ -676,10 +1248,12 @@
               action: "new_order",
               orderId,
               customerName: name,
-              phone,
+              phone: phone10,
               address,
               slot,
               itemsSummary,
+              itemTotal,
+              deliveryFee,
               total,
               paymentMode
             })
@@ -693,14 +1267,16 @@
         `*NEW ORDER — ${settings.storeName.toUpperCase()} (${orderId})*`,
         `------------------------`,
         `*Customer:* ${name}`,
-        `*Phone:* ${phone}`,
+        `*Phone:* ${phone10}`,
         `*Address:* ${address}`,
         `*Delivery Slot:* ${slot}`,
         `------------------------`,
         `*Items:*`,
-        ...cart.map(i => `• ${i.name} (${i.weight} - ${i.cut}) x${i.qty} = ₹${i.unitPrice * i.qty}`),
+        ...cart.map(i => `• ${i.name} (${i.weight}) x${i.qty} = ₹${i.unitPrice * i.qty}`),
         `------------------------`,
-        `*Total Amount:* ₹${total}`,
+        `Item Total: ₹${itemTotal}`,
+        `Delivery Fee: ${deliveryFee === 0 ? "FREE" : "₹" + deliveryFee}`,
+        `*Total Payable:* ₹${total}`,
         `*Payment Mode:* ${paymentMode === "UPI" ? "Paid via UPI QR" : "Cash on Delivery"}`
       ];
 
@@ -708,6 +1284,7 @@
 
       cart = [];
       updateCartUI();
+      renderProducts();
       closeCheckoutModal();
       btn.disabled = false;
       btn.textContent = "Place Order & Send on WhatsApp →";
@@ -715,14 +1292,142 @@
       window.open(waUrl, "_blank");
     }
 
-    // ==================== ADMIN CATALOG ACTIONS (AUTO-SYNC TO SHEET) ====================
+    // ==================== ADMIN FUNCTIONS ====================
+    function renderAdminSlotToggles() {
+      const box = document.getElementById("adminSlotToggles");
+      box.innerHTML = slotGroups.map((grp, gIdx) => `
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <div class="text-xs font-extrabold text-slate-700 mb-2">${grp.group}</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            ${grp.slots.map((s, sIdx) => `
+              <button type="button" onclick="toggleSlot(${gIdx}, ${sIdx})"
+                class="flex items-center justify-between px-3 py-2 rounded-xl border text-xs font-bold transition ${
+                  s.enabled
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                    : "bg-slate-100 border-slate-200 text-slate-400"
+                }">
+                <span>${s.label}</span>
+                <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${
+                  s.enabled ? "bg-emerald-600 text-white" : "bg-slate-400 text-white"
+                }">
+                  ${s.enabled ? "ON" : "OFF"}
+                </span>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function toggleSlot(gIdx, sIdx) {
+      slotGroups[gIdx].slots[sIdx].enabled = !slotGroups[gIdx].slots[sIdx].enabled;
+      localStorage.setItem("vegman_slots", JSON.stringify(slotGroups));
+      renderAdminSlotToggles();
+      renderCheckoutSlots();
+    }
+
+    function renderSubHeadingManager() {
+      const sel = document.getElementById("subHeadingTargetSelect");
+      const knownCats = [
+        ...Object.keys(DEFAULT_CATEGORY_IMAGES),
+        ...Object.keys(categoryImages),
+        ...products.map(p => p.category).filter(Boolean)
+      ];
+      const uniqueCats = [...new Set(knownCats)];
+      const currentVal = sel.value || uniqueCats[0] || "Veggies";
+
+      sel.innerHTML = uniqueCats.map(c => `<option value="${c}">${c}</option>`).join("");
+      sel.value = uniqueCats.includes(currentVal) ? currentVal : uniqueCats[0];
+      onSubHeadingSelectChange();
+
+      const chipsEl = document.getElementById("subCategoryChipsList");
+      chipsEl.innerHTML = subCategories.map((sc, idx) => `
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-300 text-xs font-bold text-slate-800">
+          ${sc}
+          <button type="button" onclick="removeSubCategory(${idx})" class="text-rose-600 font-extrabold">✕</button>
+        </span>
+      `).join("");
+    }
+
+    function onSubHeadingSelectChange() {
+      const cat = document.getElementById("subHeadingTargetSelect").value;
+      document.getElementById("subHeadingImgUrlInput").value = categoryImages[cat] || "";
+      document.getElementById("subHeadingUploadStatus").textContent = "";
+    }
+
+    async function handleSubHeadingPhotoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById("subHeadingUploadStatus");
+      if (!settings.imgbbApiKey) {
+        statusEl.textContent = "Add ImgBB API key in Store Settings first.";
+        return;
+      }
+      statusEl.textContent = "Uploading sub-heading photo...";
+      const fd = new FormData();
+      fd.append("image", file);
+      try {
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${settings.imgbbApiKey}`, { method: "POST", body: fd });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("subHeadingImgUrlInput").value = data.data.url;
+          statusEl.textContent = "Uploaded! Click 'Save Sub-Heading Photo'.";
+        } else {
+          statusEl.textContent = "Upload failed.";
+        }
+      } catch (e) {
+        statusEl.textContent = "Network error during upload.";
+      }
+    }
+
+    function saveSubHeadingPhoto() {
+      const cat = document.getElementById("subHeadingTargetSelect").value;
+      const url = document.getElementById("subHeadingImgUrlInput").value.trim();
+      if (!cat || !url) return;
+      categoryImages[cat] = url;
+      localStorage.setItem("vegman_cat_images", JSON.stringify(categoryImages));
+      renderCategories();
+      document.getElementById("subHeadingUploadStatus").textContent = `Saved photo for "${cat}" ✓`;
+    }
+
+    function addSubCategory() {
+      const inp = document.getElementById("newSubCategoryInput");
+      const val = inp.value.trim();
+      if (!val) return;
+      if (!subCategories.includes(val)) {
+        subCategories.push(val);
+        localStorage.setItem("vegman_subcategories", JSON.stringify(subCategories));
+      }
+      inp.value = "";
+      renderSubHeadingManager();
+      renderSubCategories();
+    }
+
+    function removeSubCategory(idx) {
+      subCategories.splice(idx, 1);
+      localStorage.setItem("vegman_subcategories", JSON.stringify(subCategories));
+      renderSubHeadingManager();
+      renderSubCategories();
+    }
+
+    function addVariantRow() {
+      const container = document.getElementById("variantBuilderRows");
+      const row = document.createElement("div");
+      row.className = "flex gap-2";
+      row.innerHTML = `
+        <input type="text" placeholder="Size (e.g. 1kg)" class="var-label w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+        <input type="number" placeholder="Price ₹" class="var-price w-1/2 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+      `;
+      container.appendChild(row);
+    }
+
     function saveAdminSettings() {
       settings.storeName = document.getElementById("adminStoreName").value.trim() || DEFAULT_SETTINGS.storeName;
       settings.adminPin = document.getElementById("adminPinInput").value.trim() || DEFAULT_SETTINGS.adminPin;
       settings.whatsappNumber = document.getElementById("adminWhatsapp").value.trim() || DEFAULT_SETTINGS.whatsappNumber;
       settings.upiId = document.getElementById("adminUpiId").value.trim() || DEFAULT_SETTINGS.upiId;
       settings.googleScriptUrl = document.getElementById("adminScriptUrl").value.trim() || DEFAULT_SETTINGS.googleScriptUrl;
-      settings.imgbbApiKey = document.getElementById("adminImgbbKey").value.trim();
+      settings.imgbbApiKey = document.getElementById("adminImgbbKey").value.trim() || DEFAULT_SETTINGS.imgbbApiKey;
 
       localStorage.setItem("vegman_settings", JSON.stringify(settings));
       applySettingsToUI();
@@ -735,7 +1440,7 @@
       const statusEl = document.getElementById("uploadStatus");
 
       if (!settings.imgbbApiKey) {
-        statusEl.textContent = "Tip: Upload image to ImgBB.com and paste the https://i.ibb.co/... Direct Link above.";
+        statusEl.textContent = "Please add your ImgBB API key in Store Settings.";
         return;
       }
 
@@ -763,13 +1468,28 @@
     async function addNewVegetable() {
       const name = document.getElementById("newVegName").value.trim();
       const hindi = document.getElementById("newVegHindi").value.trim();
-      const category = document.getElementById("newVegCat").value.trim() || "Daily Veggies";
-      const price250 = Number(document.getElementById("newVegPrice").value);
+      const category = document.getElementById("newVegCat").value.trim() || "Veggies";
+      const subCategory = document.getElementById("newVegSubCat").value.trim();
       const image = document.getElementById("newVegImgUrl").value.trim();
 
-      if (!name || !price250) {
-        alert("Please enter Product Name and 250g Price.");
+      const labels = document.querySelectorAll("#variantBuilderRows .var-label");
+      const prices = document.querySelectorAll("#variantBuilderRows .var-price");
+      const variantPairs = [];
+
+      labels.forEach((lblInput, i) => {
+        const l = lblInput.value.trim();
+        const p = Number(prices[i].value);
+        if (l && p > 0) variantPairs.push(`${l}:${p}`);
+      });
+
+      if (!name || variantPairs.length === 0) {
+        alert("Please enter Product Name and at least one Size & Price.");
         return;
+      }
+
+      if (subCategory && !subCategories.includes(subCategory)) {
+        subCategories.push(subCategory);
+        localStorage.setItem("vegman_subcategories", JSON.stringify(subCategories));
       }
 
       products.unshift({
@@ -777,21 +1497,26 @@
         name,
         hindi,
         category,
-        price250,
-        inStock: true,
+        subCategory,
+        variants: variantPairs.join(", "),
+        enabled: true,
         image
       });
 
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
+      renderSubCategories();
       renderProducts();
       renderAdminCatalog();
+      renderSubHeadingManager();
 
       document.getElementById("newVegName").value = "";
       document.getElementById("newVegHindi").value = "";
-      document.getElementById("newVegPrice").value = "";
+      document.getElementById("newVegSubCat").value = "";
       document.getElementById("newVegImgUrl").value = "";
       document.getElementById("uploadStatus").textContent = "";
+      labels.forEach(i => i.value = "");
+      prices.forEach(i => i.value = "");
 
       await pushToGoogleSheet(false);
     }
@@ -799,36 +1524,42 @@
     function renderAdminCatalog() {
       const list = document.getElementById("adminCatalogList");
       document.getElementById("catalogCountLabel").textContent = `${products.length} items`;
-      list.innerHTML = products.map((p, idx) => `
-        <div class="py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+      list.innerHTML = products.map((p, idx) => {
+        const isOn = p.enabled !== false;
+        return `
+        <div class="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
           <div>
-            <span class="font-bold text-slate-900">${p.name}</span>
-            <span class="text-slate-500">(${p.hindi ? p.hindi + ' • ' : ''}${p.category})</span>
+            <span class="font-bold text-slate-900 text-sm">${p.name}</span>
+            <span class="text-slate-500">(${p.category}${p.subCategory ? ' • ' + p.subCategory : ''})</span>
           </div>
-          <div class="flex items-center gap-2">
-            <label class="text-slate-500">250g ₹:</label>
-            <input type="number" value="${p.price250}" onchange="updateAdminPrice(${idx}, this.value)"
-              class="w-16 px-2 py-1 rounded-lg border border-slate-300 font-bold" />
-            <button onclick="toggleStock(${idx})"
-              class="px-2.5 py-1 rounded-lg font-bold ${p.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-700'}">
-              ${p.inStock ? 'In Stock' : 'Out'}
+          <div class="flex items-center justify-end gap-2">
+            <input type="text" value="${p.variants}" onchange="updateAdminVariants(${idx}, this.value)"
+              title="Format: Size:Price, Size:Price"
+              class="w-44 px-2.5 py-1.5 rounded-lg border border-slate-300 font-semibold" />
+            <button type="button" onclick="toggleProductOnOff(${idx})"
+              class="px-3 py-1.5 rounded-xl font-extrabold text-[11px] transition ${
+                isOn ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
+              }">
+              ${isOn ? "ON" : "OFF"}
             </button>
-            <button onclick="deleteProduct(${idx})" class="text-rose-600 font-bold px-1.5">✕</button>
+            <button type="button" onclick="deleteProduct(${idx})" class="text-rose-600 font-bold px-1.5 text-sm">✕</button>
           </div>
         </div>
-      `).join("");
+      `}).join("");
     }
 
-    async function updateAdminPrice(idx, val) {
-      products[idx].price250 = Number(val) || 10;
+    async function updateAdminVariants(idx, val) {
+      products[idx].variants = val.trim() || "1 Pack:20";
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderProducts();
       await pushToGoogleSheet(false);
     }
 
-    async function toggleStock(idx) {
-      products[idx].inStock = !products[idx].inStock;
+    async function toggleProductOnOff(idx) {
+      products[idx].enabled = !(products[idx].enabled !== false);
       localStorage.setItem("vegman_products", JSON.stringify(products));
+      renderCategories();
+      renderSubCategories();
       renderProducts();
       renderAdminCatalog();
       await pushToGoogleSheet(false);
@@ -839,6 +1570,7 @@
       products.splice(idx, 1);
       localStorage.setItem("vegman_products", JSON.stringify(products));
       renderCategories();
+      renderSubCategories();
       renderProducts();
       renderAdminCatalog();
       await pushToGoogleSheet(false);
